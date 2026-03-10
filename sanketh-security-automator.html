@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Security Automator — ThinkWithSanketh</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --cream: #f5f0e8;
+  --cream2: #ede6d6;
+  --parchment: #e8dfc8;
+  --brown-dark: #2c1810;
+  --brown-mid: #5c3d2e;
+  --brown-light: #8b6355;
+  --gold: #c8941a;
+  --gold-light: #e8b84b;
+  --gold-pale: #f5e4b0;
+  --ink: #1a0f0a;
+  --text: #3d2415;
+  --muted: #8b7355;
+  --border: #d4c4a0;
+  --border-light: #e8dcc8;
+  --success: #2d6a4f;
+  --success-bg: #d8f3dc;
+  --danger: #9b2335;
+  --danger-bg: #fde8ec;
+  --white: #faf8f4;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; overflow-x:hidden; }
+.container { position:relative; z-index:1; max-width:680px; margin:0 auto; padding:0 16px 80px; }
+
+/* MASTHEAD */
+.masthead { background:var(--brown-dark); margin:0 -16px; padding:0 16px; position:relative; overflow:hidden; }
+.masthead::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:linear-gradient(90deg,transparent,var(--gold),var(--gold-light),var(--gold),transparent); }
+.masthead-inner { max-width:680px; margin:0 auto; padding:32px 0 28px; text-align:center; }
+.masthead-eyebrow { display:inline-flex; align-items:center; gap:8px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-light); margin-bottom:16px; }
+.masthead-eyebrow::before, .masthead-eyebrow::after { content:''; display:block; width:30px; height:1px; background:var(--gold); opacity:0.5; }
+.masthead h1 { font-family:'Playfair Display',serif; font-size:clamp(32px,8vw,52px); font-weight:900; color:var(--cream); line-height:1.05; margin-bottom:10px; }
+.masthead h1 em { font-style:italic; color:var(--gold-light); }
+.masthead-sub { font-size:13px; color:rgba(245,240,232,0.5); font-weight:300; margin-bottom:24px; }
+.masthead-pills { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
+.pill { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.08em; padding:5px 12px; border-radius:20px; text-transform:uppercase; font-weight:500; }
+.pill-gold { background:rgba(200,148,26,0.2); color:var(--gold-light); border:1px solid rgba(200,148,26,0.3); }
+.pill-cream { background:rgba(245,240,232,0.08); color:rgba(245,240,232,0.55); border:1px solid rgba(245,240,232,0.12); }
+
+/* DIVIDERS */
+.sec-rule { display:flex; align-items:center; gap:12px; padding:28px 0 20px; }
+.sec-rule::before, .sec-rule::after { content:''; flex:1; height:1px; background:var(--border); }
+.sec-rule span { font-family:'Playfair Display',serif; font-size:11px; font-style:italic; color:var(--muted); white-space:nowrap; }
+
+/* CARDS */
+.card { background:var(--white); border:1px solid var(--border-light); border-radius:16px; margin-bottom:20px; overflow:hidden; box-shadow:0 2px 20px rgba(44,24,16,0.06); animation:riseUp 0.5s ease both; }
+.card:nth-child(1){ animation-delay:0.05s; }
+.card:nth-child(2){ animation-delay:0.15s; }
+.card:nth-child(3){ animation-delay:0.25s; }
+.card-top { background:var(--brown-dark); padding:18px 20px 16px; position:relative; }
+.card-top::after { content:''; position:absolute; bottom:0; left:20px; right:20px; height:1px; background:linear-gradient(90deg,transparent,rgba(200,148,26,0.4),transparent); }
+.card-head-row { display:flex; align-items:flex-start; gap:14px; }
+.step-num { font-family:'Playfair Display',serif; font-size:28px; font-weight:900; font-style:italic; color:var(--gold); line-height:1; flex-shrink:0; margin-top:2px; }
+.card-titles { flex:1; }
+.card-title { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; color:var(--cream); margin-bottom:4px; }
+.card-sub { font-size:12px; color:rgba(245,240,232,0.45); }
+.card-badge { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.15em; text-transform:uppercase; padding:4px 10px; border-radius:20px; flex-shrink:0; margin-top:4px; }
+.badge-auto { background:rgba(200,148,26,0.2); color:var(--gold-light); border:1px solid rgba(200,148,26,0.25); }
+.badge-guide { background:rgba(45,106,79,0.2); color:#6fcf97; border:1px solid rgba(45,106,79,0.25); }
+.card-body { padding:20px; }
+
+/* INFO STRIP */
+.info-strip { background:var(--gold-pale); border:1px solid rgba(200,148,26,0.25); border-radius:10px; padding:12px 14px; margin-bottom:18px; display:flex; gap:10px; }
+.info-strip-icon { font-size:14px; flex-shrink:0; margin-top:1px; }
+.info-strip p { font-size:12.5px; line-height:1.55; color:var(--brown-mid); }
+.info-strip strong { color:var(--brown-dark); font-weight:600; }
+code.ic { font-family:'DM Mono',monospace; font-size:11px; background:rgba(44,24,16,0.08); padding:1px 5px; border-radius:4px; color:var(--brown-dark); }
+
+/* UPLOAD */
+.upload-zone { border:1.5px dashed var(--border); border-radius:12px; padding:28px 20px; text-align:center; cursor:pointer; transition:all 0.2s; background:var(--cream); position:relative; }
+.upload-zone:hover, .upload-zone.dragover { border-color:var(--gold); background:var(--gold-pale); }
+.upload-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.u-icon { font-size:30px; margin-bottom:10px; display:block; }
+.u-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.u-hint { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+.file-chip { display:flex; align-items:center; gap:10px; background:var(--success-bg); border:1px solid rgba(45,106,79,0.25); border-radius:10px; padding:10px 14px; margin-top:10px; }
+.fc-icon { font-size:16px; }
+.fc-name { font-size:13px; font-weight:600; color:var(--success); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fc-size { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+
+/* INPUTS */
+.field-label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; display:block; }
+.field-group { margin-top:16px; }
+.config-stack { display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+.config-field label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); display:block; margin-bottom:5px; }
+.config-field input { width:100%; background:var(--cream); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Mono',monospace; font-size:12px; padding:11px 14px; outline:none; transition:all 0.2s; }
+.config-field input:focus { border-color:var(--gold); background:var(--white); box-shadow:0 0 0 3px rgba(200,148,26,0.1); }
+.config-field input::placeholder { color:var(--border); }
+
+/* BUTTONS */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:none; border-radius:10px; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:600; font-size:14px; transition:all 0.2s; padding:13px 20px; }
+.btn-primary { background:var(--brown-dark); color:var(--cream); width:100%; margin-top:16px; }
+.btn-primary:hover:not(:disabled) { background:var(--brown-mid); transform:translateY(-1px); box-shadow:0 4px 16px rgba(44,24,16,0.2); }
+.btn-primary:disabled { opacity:0.4; cursor:not-allowed; }
+.btn-download { background:var(--success-bg); border:1.5px solid rgba(45,106,79,0.3); color:var(--success); width:100%; margin-top:10px; font-weight:600; }
+.btn-download:hover { background:#b7e4c7; }
+
+/* LOG BOX */
+.log-box { background:var(--ink); border-radius:10px; margin-top:12px; max-height:150px; overflow:hidden; display:none; flex-direction:column; }
+.log-box.show { display:flex; }
+.log-box-hdr { display:flex; align-items:center; gap:6px; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); }
+.dot { width:8px; height:8px; border-radius:50%; }
+.dot-r{background:#ff5f57;} .dot-y{background:#febc2e;} .dot-g{background:#28c840;}
+.log-box-label { font-family:'DM Mono',monospace; font-size:10px; color:rgba(255,255,255,0.25); letter-spacing:0.1em; margin-left:4px; }
+.log-lines { padding:8px 12px 10px; overflow-y:auto; flex:1; }
+.log-line { font-family:'DM Mono',monospace; font-size:11px; line-height:1.7; display:flex; gap:8px; }
+.log-line::before { content:'›'; opacity:0.3; flex-shrink:0; }
+.l-ok{color:#6fcf97;} .l-info{color:#90caf9;} .l-warn{color:#ffe082;} .l-err{color:#ef9a9a;}
+
+/* GUIDE */
+.guide-list { display:flex; flex-direction:column; gap:10px; }
+.guide-item { display:flex; gap:14px; align-items:flex-start; padding:14px 16px; background:var(--cream); border:1px solid var(--border-light); border-radius:12px; transition:border-color 0.2s; }
+.guide-item:hover { border-color:var(--border); }
+.guide-n { width:26px; height:26px; border-radius:50%; background:var(--brown-dark); color:var(--gold-light); font-family:'Playfair Display',serif; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.guide-item p { font-size:13.5px; line-height:1.55; }
+.guide-item p strong { color:var(--brown-dark); font-weight:600; }
+
+/* CODE BLOCK */
+.code-block { background:var(--ink); border-radius:12px; overflow:hidden; margin-top:16px; border:1px solid rgba(255,255,255,0.06); }
+.code-bar { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.06); }
+.code-label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.12em; color:rgba(255,255,255,0.3); text-transform:uppercase; }
+.copy-btn { font-family:'DM Mono',monospace; font-size:11px; padding:5px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:rgba(255,255,255,0.4); cursor:pointer; transition:all 0.2s; }
+.copy-btn:hover { border-color:var(--gold); color:var(--gold-light); }
+.copy-btn.copied { border-color:#6fcf97; color:#6fcf97; }
+.code-block pre { padding:16px; font-family:'DM Mono',monospace; font-size:11.5px; line-height:1.8; color:rgba(255,255,255,0.65); overflow-x:auto; white-space:pre; }
+
+/* RESULT PILLS */
+.result-pills { display:flex; flex-direction:column; gap:7px; margin-top:16px; }
+.result-pill { display:flex; align-items:center; gap:10px; font-size:13px; padding:10px 14px; border-radius:8px; }
+.pill-ok { background:var(--success-bg); color:var(--success); border:1px solid rgba(45,106,79,0.2); }
+.pill-no { background:var(--danger-bg); color:var(--danger); border:1px solid rgba(155,35,53,0.2); }
+
+/* SEE ALL */
+.see-all-wrap { padding:8px 0 0; animation:riseUp 0.5s 0.4s ease both; }
+.see-all-btn { width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:18px; background:var(--brown-dark); border:none; border-radius:14px; cursor:pointer; transition:all 0.2s; }
+.see-all-btn:hover { background:var(--brown-mid); transform:translateY(-1px); box-shadow:0 6px 24px rgba(44,24,16,0.2); }
+.see-all-btn span { font-family:'Playfair Display',serif; font-size:15px; font-style:italic; color:var(--cream); }
+.see-all-btn .arr { font-style:normal; font-family:'DM Mono',monospace; font-size:12px; color:var(--gold-light); }
+
+/* MODAL */
+.modal-bg { position:fixed; inset:0; background:rgba(26,15,10,0.75); backdrop-filter:blur(6px); z-index:200; display:flex; align-items:flex-start; justify-content:center; padding:16px; overflow-y:auto; opacity:0; pointer-events:none; transition:opacity 0.3s; }
+.modal-bg.open { opacity:1; pointer-events:all; }
+.modal-sheet { background:var(--white); border:1px solid var(--border-light); border-radius:20px; width:100%; max-width:680px; margin:auto; overflow:hidden; box-shadow:0 24px 80px rgba(26,15,10,0.4); transform:translateY(24px); transition:transform 0.3s; }
+.modal-bg.open .modal-sheet { transform:translateY(0); }
+.modal-hdr { background:var(--brown-dark); padding:20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:2; }
+.modal-hdr h2 { font-family:'Playfair Display',serif; font-size:18px; font-style:italic; color:var(--cream); }
+.modal-hdr h2 span { color:var(--gold-light); }
+.modal-close { width:34px; height:34px; border-radius:8px; background:rgba(245,240,232,0.08); border:1px solid rgba(245,240,232,0.12); color:var(--cream); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.modal-close:hover { background:rgba(155,35,53,0.3); }
+.modal-body { padding:20px; }
+.m-step { margin-bottom:16px; border:1px solid var(--border-light); border-radius:14px; overflow:hidden; }
+.m-step-hd { background:var(--cream2); padding:14px 16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border-light); }
+.m-num { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; font-style:italic; color:var(--gold); line-height:1; flex-shrink:0; }
+.m-title { font-family:'Playfair Display',serif; font-size:14px; font-weight:700; color:var(--brown-dark); flex:1; }
+.m-tag { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; padding:3px 9px; border-radius:20px; }
+.t-req { background:var(--success-bg); color:var(--success); border:1px solid rgba(45,106,79,0.2); }
+.t-sec { background:var(--gold-pale); color:var(--gold); border:1px solid rgba(200,148,26,0.25); }
+.t-opt { background:var(--cream); color:var(--muted); border:1px solid var(--border); }
+.m-step-body { padding:14px 16px; }
+.m-list { list-style:none; display:flex; flex-direction:column; gap:7px; }
+.m-list li { display:flex; gap:10px; font-size:13px; line-height:1.5; color:var(--text); }
+.m-n { font-family:'DM Mono',monospace; font-size:10px; color:var(--gold); font-weight:500; flex-shrink:0; margin-top:2px; min-width:18px; }
+.m-note { margin-top:10px; padding:10px 12px; background:var(--cream); border-left:3px solid var(--gold); border-radius:0 8px 8px 0; font-size:12px; color:var(--muted); line-height:1.55; }
+
+/* LOADER */
+.spin { display:inline-block; width:14px; height:14px; border:2px solid rgba(245,240,232,0.25); border-top-color:var(--cream); border-radius:50%; animation:rotate 0.6s linear infinite; }
+
+/* FOOTER */
+.footer { text-align:center; padding:32px 0 0; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); opacity:0.5; }
+
+/* ANIMATIONS */
+@keyframes riseUp { from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);} }
+@keyframes rotate { to{transform:rotate(360deg);} }
+@keyframes fadeIn { from{opacity:0;}to{opacity:1;} }
+.masthead { animation:fadeIn 0.5s ease both; }
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">ThinkWithSanketh</div>
+    <h1>Security<br/><em>Automator</em></h1>
+    <p class="masthead-sub">Automate Steps 6 and 7 &nbsp;·&nbsp; Guided Step 8</p>
+    <div class="masthead-pills">
+      <span class="pill pill-gold">AI-Powered</span>
+      <span class="pill pill-cream">JS Obfuscation</span>
+      <span class="pill pill-cream">Firebase Auth</span>
+      <span class="pill pill-cream">Firestore Rules</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="sec-rule"><span>Step 6 — Obfuscate JavaScript</span></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-head-row">
+        <div class="step-num">06</div>
+        <div class="card-titles">
+          <div class="card-title">Obfuscate Your JavaScript</div>
+          <div class="card-sub">Upload HTML &rarr; AI rewrites JS &rarr; download</div>
+        </div>
+        <span class="card-badge badge-auto">Auto</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="info-strip">
+        <span class="info-strip-icon">💡</span>
+        <p>AI extracts your <code class="ic">&lt;script&gt;</code> block, applies compact + self-defending + base64 string obfuscation, then returns your file ready to upload to GitHub.</p>
+      </div>
+      <div class="upload-zone" id="zone6">
+        <input type="file" id="file6" accept=".html,.htm"/>
+        <span class="u-icon">📄</span>
+        <div class="u-title">Tap to upload your HTML file</div>
+        <div class="u-hint">Accepts .html and .htm</div>
+      </div>
+      <div class="file-chip" id="chip6" style="display:none">
+        <span class="fc-icon">✓</span>
+        <span class="fc-name" id="fname6"></span>
+        <span class="fc-size" id="fsize6"></span>
+      </div>
+      <button class="btn btn-primary" id="btn6" disabled onclick="runStep6()">
+        <span id="b6i">⚡&nbsp; Obfuscate JS Now</span>
+      </button>
+      <div class="log-box" id="log6">
+        <div class="log-box-hdr">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="log-box-label">Console</span>
+        </div>
+        <div class="log-lines" id="ll6"></div>
+      </div>
+      <button class="btn btn-download" id="dl6" style="display:none" onclick="doDownload(6)">
+        &#8595;&nbsp; Download Obfuscated File
+      </button>
+    </div>
+  </div>
+
+  <div class="sec-rule"><span>Step 7 — Firebase Auth Injection</span></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-head-row">
+        <div class="step-num">07</div>
+        <div class="card-titles">
+          <div class="card-title">Add Firebase Auth</div>
+          <div class="card-sub">Auto-inject Google login into any HTML site</div>
+        </div>
+        <span class="card-badge badge-auto">Auto</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="info-strip">
+        <span class="info-strip-icon">🔐</span>
+        <p>AI adds Firebase scripts to <code class="ic">&lt;head&gt;</code>, injects auth logic into your JS, and wraps the full body in a Google login gate — one click, done.</p>
+      </div>
+      <div class="upload-zone" id="zone7">
+        <input type="file" id="file7" accept=".html,.htm"/>
+        <span class="u-icon">📄</span>
+        <div class="u-title">Tap to upload your HTML file</div>
+        <div class="u-hint">Any site without auth yet</div>
+      </div>
+      <div class="file-chip" id="chip7" style="display:none">
+        <span class="fc-icon">✓</span>
+        <span class="fc-name" id="fname7"></span>
+        <span class="fc-size" id="fsize7"></span>
+      </div>
+      <div class="field-group">
+        <span class="field-label">Your Firebase Config</span>
+        <div class="config-stack">
+          <div class="config-field">
+            <label>API Key</label>
+            <input type="text" id="fb_key" placeholder="AIzaSy..."/>
+          </div>
+          <div class="config-field">
+            <label>Auth Domain</label>
+            <input type="text" id="fb_dom" placeholder="your-project.firebaseapp.com"/>
+          </div>
+          <div class="config-field">
+            <label>Project ID</label>
+            <input type="text" id="fb_pid" placeholder="your-project-id"/>
+          </div>
+          <div class="config-field">
+            <label>App Name (shown on login screen)</label>
+            <input type="text" id="fb_app" placeholder="My App"/>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btn7" disabled onclick="runStep7()">
+        <span id="b7i">🔐&nbsp; Inject Firebase Auth</span>
+      </button>
+      <div class="log-box" id="log7">
+        <div class="log-box-hdr">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="log-box-label">Console</span>
+        </div>
+        <div class="log-lines" id="ll7"></div>
+      </div>
+      <button class="btn btn-download" id="dl7" style="display:none" onclick="doDownload(7)">
+        &#8595;&nbsp; Download Auth-Protected File
+      </button>
+    </div>
+  </div>
+
+  <div class="sec-rule"><span>Step 8 — Firestore Security Rules</span></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-head-row">
+        <div class="step-num">08</div>
+        <div class="card-titles">
+          <div class="card-title">Tighten Firestore Rules</div>
+          <div class="card-sub">Guided walkthrough + one-tap copy</div>
+        </div>
+        <span class="card-badge badge-guide">Guide</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="guide-list">
+        <div class="guide-item">
+          <div class="guide-n">1</div>
+          <p>Open <strong>console.firebase.google.com</strong> and select your project</p>
+        </div>
+        <div class="guide-item">
+          <div class="guide-n">2</div>
+          <p>Left sidebar &rarr; <strong>Firestore Database</strong> &rarr; tap the <strong>Rules</strong> tab</p>
+        </div>
+        <div class="guide-item">
+          <div class="guide-n">3</div>
+          <p>Select <strong>all existing text</strong> and delete it, then paste the rules below</p>
+        </div>
+        <div class="guide-item">
+          <div class="guide-n">4</div>
+          <p>Tap <strong>Publish</strong> &mdash; your rules are now live ✓</p>
+        </div>
+      </div>
+      <div class="code-block">
+        <div class="code-bar">
+          <span class="code-label">Firestore Rules</span>
+          <button class="copy-btn" id="cpBtn" onclick="copyRules()">Copy</button>
+        </div>
+        <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null
+                         &amp;&amp; request.auth.uid == userId;
+    }
+  }
+}</pre>
+      </div>
+      <div class="result-pills">
+        <div class="result-pill pill-ok"><span>✅</span> Logged-in users can only access <strong>their own</strong> data</div>
+        <div class="result-pill pill-no"><span>❌</span> No one can read another user's data</div>
+        <div class="result-pill pill-no"><span>❌</span> Logged-out visitors cannot read anything</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="see-all-wrap">
+    <button class="see-all-btn" onclick="openModal()">
+      <span>View All 8 Steps</span>
+      <span class="arr">&#8594;</span>
+    </button>
+  </div>
+
+  <div class="footer">ThinkWithSanketh &nbsp;&middot;&nbsp; Security Automator</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg" onclick="closeOutside(event)">
+  <div class="modal-sheet">
+    <div class="modal-hdr">
+      <h2>All <span>8 Steps</span></h2>
+      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+var f6cnt=null, f6nm=null, out6=null;
+var f7cnt=null, f7nm=null, out7=null;
+
+// file uploads
+document.getElementById('file6').addEventListener('change', function() {
+  var f = this.files[0]; if (!f) return;
+  var r = new FileReader();
+  r.onload = function(e) {
+    f6cnt = e.target.result; f6nm = f.name;
+    document.getElementById('fname6').textContent = f.name;
+    document.getElementById('fsize6').textContent = (f.size/1024).toFixed(1)+'KB';
+    document.getElementById('chip6').style.display = 'flex';
+    document.getElementById('btn6').disabled = false;
+  };
+  r.readAsText(f);
+});
+
+document.getElementById('file7').addEventListener('change', function() {
+  var f = this.files[0]; if (!f) return;
+  var r = new FileReader();
+  r.onload = function(e) {
+    f7cnt = e.target.result; f7nm = f.name;
+    document.getElementById('fname7').textContent = f.name;
+    document.getElementById('fsize7').textContent = (f.size/1024).toFixed(1)+'KB';
+    document.getElementById('chip7').style.display = 'flex';
+    document.getElementById('btn7').disabled = false;
+  };
+  r.readAsText(f);
+});
+
+['zone6','zone7'].forEach(function(id) {
+  var el = document.getElementById(id);
+  el.addEventListener('dragover', function(e) { e.preventDefault(); el.classList.add('dragover'); });
+  el.addEventListener('dragleave', function() { el.classList.remove('dragover'); });
+  el.addEventListener('drop', function() { el.classList.remove('dragover'); });
+});
+
+function addLog(n, msg, t) {
+  var box = document.getElementById('log'+n);
+  box.classList.add('show');
+  var ll = document.getElementById('ll'+n);
+  var d = document.createElement('div');
+  d.className = 'log-line l-'+(t||'info');
+  d.textContent = msg;
+  ll.appendChild(d);
+  ll.scrollTop = ll.scrollHeight;
+}
+
+function clearLog(n) {
+  document.getElementById('ll'+n).innerHTML = '';
+  document.getElementById('log'+n).classList.remove('show');
+}
+
+async function callAI(msgContent, maxTok) {
+  var resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTok || 8000,
+      messages: [{role:'user', content: msgContent}]
+    })
+  });
+  var data = await resp.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content.map(function(i){ return i.text||''; }).join('').trim();
+}
+
+async function runStep6() {
+  if (!f6cnt) return;
+  clearLog(6); out6=null;
+  document.getElementById('dl6').style.display='none';
+  var btn=document.getElementById('btn6'), b=document.getElementById('b6i');
+  btn.disabled=true; b.innerHTML='<span class="spin"></span>&nbsp;Processing with AI...';
+  addLog(6,'Reading HTML file...','info');
+
+  var re = /<script(?:\s[^>]*)?>([^]*?)<\/script>/i;
+  var m = f6cnt.match(re);
+  if (!m || !m[1].trim()) {
+    addLog(6,'No script tag found in this file!','err');
+    btn.disabled=false; b.textContent='Obfuscate JS Now'; return;
+  }
+  var js = m[1];
+  addLog(6,'Found JS block — '+js.length+' characters','ok');
+  addLog(6,'Sending to Claude AI for obfuscation...','info');
+
+  var msg = 'You are a JavaScript obfuscator. Take the JS code below and obfuscate it completely.\n\nApply ALL of these techniques:\n1. Rename all variables and functions to short meaningless names like _0x1a2b, a1, b2 etc\n2. Convert string literals to hex or unicode escape sequences\n3. Build an encoded string array that strings reference by index\n4. Add self-defending code that breaks functionality when devtools are open\n5. Output must be compact — minimal whitespace, ideally one line\n6. Split strings into concatenated fragments\n7. Wrap everything in an IIFE\n\nReturn ONLY the raw obfuscated JavaScript code. No markdown backticks, no explanation, just the code itself.\n\nCode:\n' + js;
+
+  try {
+    var obf = await callAI(msg, 8000);
+    if (!obf) throw new Error('Empty AI response');
+    addLog(6,'Obfuscation complete — '+obf.length+' chars','ok');
+    addLog(6,'Replacing JS in your HTML...','info');
+    out6 = f6cnt.replace(re, '<scr'+'ipt>'+obf+'<\/sc'+'ript>');
+    addLog(6,'File ready — tap download!','ok');
+    document.getElementById('dl6').style.display='flex';
+  } catch(e) {
+    addLog(6,'Error: '+e.message,'err');
+  }
+  btn.disabled=false; b.textContent='Obfuscate JS Now';
+}
+
+async function runStep7() {
+  if (!f7cnt) return;
+  clearLog(7); out7=null;
+  document.getElementById('dl7').style.display='none';
+  var key  = document.getElementById('fb_key').value.trim() || 'YOUR_API_KEY';
+  var dom  = document.getElementById('fb_dom').value.trim() || 'your-project.firebaseapp.com';
+  var pid  = document.getElementById('fb_pid').value.trim() || 'your-project-id';
+  var app  = document.getElementById('fb_app').value.trim() || 'My App';
+  var btn=document.getElementById('btn7'), b=document.getElementById('b7i');
+  btn.disabled=true; b.innerHTML='<span class="spin"></span>&nbsp;Injecting Firebase Auth...';
+  addLog(7,'Reading HTML file...','info');
+  addLog(7,'Building injection instructions...','info');
+
+  var lines = [];
+  lines.push('You are an expert web developer. Inject Firebase Google Authentication into the HTML file below.');
+  lines.push('');
+  lines.push('Firebase config to use:');
+  lines.push('  apiKey: "' + key + '"');
+  lines.push('  authDomain: "' + dom + '"');
+  lines.push('  projectId: "' + pid + '"');
+  lines.push('  App display name for login screen: "' + app + '"');
+  lines.push('');
+  lines.push('Make ALL THREE of these modifications:');
+  lines.push('');
+  lines.push('MODIFICATION 1 - Before the closing head tag, add two Firebase script tags:');
+  lines.push('One loading firebase-app-compat.js and one loading firebase-auth-compat.js from gstatic.com firebasejs 9.0.0');
+  lines.push('');
+  lines.push('MODIFICATION 2 - At the very start of the existing script tag content, add this JavaScript:');
+  lines.push('const firebaseConfig={apiKey:"' + key + '",authDomain:"' + dom + '",projectId:"' + pid + '"};');
+  lines.push('firebase.initializeApp(firebaseConfig);');
+  lines.push('firebase.auth().onAuthStateChanged(function(user){');
+  lines.push('  if(user){document.getElementById("app").style.display="block";document.getElementById("loginScreen").style.display="none";}');
+  lines.push('  else{document.getElementById("app").style.display="none";document.getElementById("loginScreen").style.display="flex";}');
+  lines.push('});');
+  lines.push('function googleLogin(){firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());}');
+  lines.push('function logout(){firebase.auth().signOut();}');
+  lines.push('');
+  lines.push('MODIFICATION 3 - In the body, wrap ALL existing body HTML inside a div with id="app" and style="display:none".');
+  lines.push('Place this div BEFORE the app div:');
+  lines.push('<div id="loginScreen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f5f0e8;font-family:sans-serif;">');
+  lines.push('  <h1 style="font-size:28px;color:#2c1810;margin-bottom:8px;">' + app + '</h1>');
+  lines.push('  <p style="color:#8b7355;margin-bottom:28px;font-size:14px;">Sign in to continue</p>');
+  lines.push('  <button onclick="googleLogin()" style="background:#2c1810;color:#f5f0e8;border:none;padding:14px 32px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">Sign in with Google</button>');
+  lines.push('</div>');
+  lines.push('');
+  lines.push('Return ONLY the complete modified HTML. No markdown fences, no explanation. Just the raw HTML file.');
+  lines.push('');
+  lines.push('Original HTML:');
+  lines.push(f7cnt);
+
+  var msg = lines.join('\n');
+
+  try {
+    var result = await callAI(msg, 16000);
+    result = result.replace(/^```[\w]*\n?/,'').replace(/\n?```$/,'').trim();
+    if (!result || result.length < 50) throw new Error('AI returned invalid output. Try a smaller file.');
+    out7 = result;
+    addLog(7,'Firebase scripts added to head','ok');
+    addLog(7,'Auth logic injected into script block','ok');
+    addLog(7,'Login screen and app wrapper added','ok');
+    addLog(7,'File ready — tap download!','ok');
+    document.getElementById('dl7').style.display='flex';
+  } catch(e) {
+    addLog(7,'Error: '+e.message,'err');
+    addLog(7,'Tip: Try with a smaller or simpler HTML file','warn');
+  }
+  btn.disabled=false; b.textContent='Inject Firebase Auth';
+}
+
+function doDownload(n) {
+  var content = n===6 ? out6 : out7;
+  var name    = n===6 ? f6nm  : f7nm;
+  var suffix  = n===6 ? '-obfuscated' : '-with-auth';
+  if (!content || !name) return;
+  var blob = new Blob([content],{type:'text/html'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url;
+  a.download = name.replace(/\.(html|htm)$/i,'') + suffix + '.html';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function copyRules() {
+  var r = "rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /users/{userId}/{document=**} {\n      allow read, write: if request.auth != null\n                         && request.auth.uid == userId;\n    }\n  }\n}";
+  navigator.clipboard.writeText(r).then(function() {
+    var b = document.getElementById('cpBtn');
+    b.textContent='Copied!'; b.classList.add('copied');
+    setTimeout(function(){ b.textContent='Copy'; b.classList.remove('copied'); },2000);
+  });
+}
+
+// modal
+var STEPS = [
+  { n:'01', title:'Make All Repos Private', tag:'required', tc:'t-req',
+    steps:['Open <strong>github.com</strong> in your browser','Tap the menu icon &rarr; <strong>Your repositories</strong>','Find and tap your repo name','Tap the <strong>Settings</strong> tab (scroll the tab row)','Scroll down to the red <strong>Danger Zone</strong>','Tap <strong>Change visibility &rarr; Make private</strong>','Type the repo name exactly as shown','Tap <strong>I understand, change repository visibility</strong>'],
+    note:'Repeat for each repo. All repos private = source code hidden from public internet.' },
+  { n:'02', title:'Create a Netlify Account', tag:'required', tc:'t-req',
+    steps:['Open <strong>netlify.com</strong>','Tap <strong>Sign up &rarr; Sign up with GitHub</strong>','Tap <strong>Authorize Netlify</strong> when prompted','You are now inside your Netlify dashboard'],
+    note:'Netlify is now connected to GitHub. It can read private repos and auto-deploy on every push.' },
+  { n:'03', title:'Deploy All Sites on Netlify', tag:'required', tc:'t-req',
+    steps:['Tap <strong>Add new site &rarr; Import an existing project</strong>','Tap <strong>Deploy with GitHub</strong>','Search and select your repo','Set Branch to main &mdash; leave Build command and Publish directory empty','Tap <strong>Deploy site</strong> and wait 1&ndash;2 minutes','Tap the Netlify URL to verify it works'],
+    note:'Repeat for each repo. Same steps each time, just pick a different repo.' },
+  { n:'04', title:'Update Firebase Authorized Domains', tag:'security', tc:'t-sec',
+    steps:['Open <strong>console.firebase.google.com</strong> &rarr; select project','Left menu &rarr; <strong>Authentication &rarr; Settings</strong>','Scroll to <strong>Authorized domains &rarr; Add domain</strong>','Enter your Netlify URL then tap Add'],
+    note:'Repeat for each site. Also repeat after Step 5 if you rename sites.' },
+  { n:'05', title:'Rename Your Netlify Sites', tag:'optional', tc:'t-opt',
+    steps:['Tap your site on the Netlify dashboard','Tap <strong>Site configuration &rarr; Change site name</strong>','Type a clean name like yourname-projectname','Tap <strong>Save</strong>'],
+    note:'After renaming, update Firebase Authorized Domains with the new URL.' },
+  { n:'06', title:'Obfuscate JavaScript Code', tag:'security', tc:'t-sec',
+    steps:['Use the <strong>Step 6 panel on this page</strong>','Upload your HTML file and tap Obfuscate JS','Download the obfuscated file','Upload to GitHub &mdash; Netlify auto-redeploys in 1&ndash;2 minutes'],
+    note:'Always obfuscate LAST. Finish all edits before obfuscating.' },
+  { n:'07', title:'Add Firebase Auth to Sites', tag:'security', tc:'t-sec',
+    steps:['Use the <strong>Step 7 panel on this page</strong>','Enter your Firebase API key, auth domain, and project ID','Click Inject Firebase Auth &mdash; AI adds all 3 parts','Download and push to GitHub'],
+    note:'The AI adds scripts, auth logic, login screen, and app wrapper in one click.' },
+  { n:'08', title:'Tighten Firestore Security Rules', tag:'security', tc:'t-sec',
+    steps:['Open <strong>console.firebase.google.com</strong> &rarr; select project','Left menu &rarr; <strong>Firestore Database &rarr; Rules</strong>','Delete all existing rules, paste the rules from Step 8 above','Tap <strong>Publish</strong>'],
+    note:'Each user can only access their own data. No cross-user access. Logged-out = fully blocked.' }
+];
+
+function openModal() {
+  var body = document.getElementById('modalBody');
+  body.innerHTML = '';
+  STEPS.forEach(function(s) {
+    var lis = s.steps.map(function(st, i) {
+      return '<li><span class="m-n">0'+(i+1)+'</span><span>'+st+'</span></li>';
+    }).join('');
+    var noteHtml = s.note ? '<div class="m-note">'+s.note+'</div>' : '';
+    var div = document.createElement('div');
+    div.className = 'm-step';
+    div.innerHTML =
+      '<div class="m-step-hd">' +
+        '<div class="m-num">'+s.n+'</div>' +
+        '<div class="m-title">'+s.title+'</div>' +
+        '<span class="m-tag '+s.tc+'">'+s.tag+'</span>' +
+      '</div>' +
+      '<div class="m-step-body"><ul class="m-list">'+lis+'</ul>'+noteHtml+'</div>';
+    body.appendChild(div);
+  });
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function closeOutside(e) {
+  if (e.target===document.getElementById('modalBg')) closeModal();
+}
+</script>
+</body>
+</html>
