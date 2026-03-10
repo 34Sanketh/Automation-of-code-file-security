@@ -445,19 +445,20 @@ function clearLog(n) {
   document.getElementById('log'+n).classList.remove('show');
 }
 
-async function callAI(msgContent, maxTok) {
-  var resp = await fetch('https://little-glade-ac0c.sanketh700.workers.dev', {
+async function callAI(msgContent) {
+  var key = 'AIzaSyAODv4T7VWemo1bxr_H7KJLjKgNJWlmRIU';
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + key;
+  var resp = await fetch(url, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: maxTok || 8000,
-      messages: [{role:'user', content: msgContent}]
+      contents: [{parts: [{text: msgContent}]}],
+      generationConfig: { maxOutputTokens: 8192, temperature: 0.1 }
     })
   });
   var data = await resp.json();
   if (data.error) throw new Error(data.error.message);
-  return data.content.map(function(i){ return i.text||''; }).join('').trim();
+  return data.candidates[0].content.parts.map(function(p){ return p.text||''; }).join('').trim();
 }
 
 async function runStep6() {
@@ -481,7 +482,7 @@ async function runStep6() {
   var msg = 'You are a JavaScript obfuscator. Take the JS code below and obfuscate it completely.\n\nApply ALL of these techniques:\n1. Rename all variables and functions to short meaningless names like _0x1a2b, a1, b2 etc\n2. Convert string literals to hex or unicode escape sequences\n3. Build an encoded string array that strings reference by index\n4. Add self-defending code that breaks functionality when devtools are open\n5. Output must be compact — minimal whitespace, ideally one line\n6. Split strings into concatenated fragments\n7. Wrap everything in an IIFE\n\nReturn ONLY the raw obfuscated JavaScript code. No markdown backticks, no explanation, just the code itself.\n\nCode:\n' + js;
 
   try {
-    var obf = await callAI(msg, 8000);
+    var obf = await callAI(msg);
     if (!obf) throw new Error('Empty AI response');
     addLog(6,'Obfuscation complete — '+obf.length+' chars','ok');
     addLog(6,'Replacing JS in your HTML...','info');
@@ -547,7 +548,7 @@ async function runStep7() {
   var msg = lines.join('\n');
 
   try {
-    var result = await callAI(msg, 16000);
+    var result = await callAI(msg);
     result = result.replace(/^```[\w]*\n?/,'').replace(/\n?```$/,'').trim();
     if (!result || result.length < 50) throw new Error('AI returned invalid output. Try a smaller file.');
     out7 = result;
