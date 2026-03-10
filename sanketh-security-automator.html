@@ -446,19 +446,23 @@ function clearLog(n) {
 }
 
 async function callAI(msgContent) {
-  var key = 'AIzaSyD84P_dv9PkftfmfcNbL6fL9K-Hh0xfjSk';
-  var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + key;
-  var resp = await fetch(url, {
+  var key = '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';
+  var resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + key,
+      'HTTP-Referer': 'https://34sanketh.github.io',
+      'X-Title': 'Security Automator'
+    },
     body: JSON.stringify({
-      contents: [{parts: [{text: msgContent}]}],
-      generationConfig: { maxOutputTokens: 8192, temperature: 0.1 }
+      model: 'meta-llama/llama-3.3-70b-instruct:free',
+      messages: [{role: 'user', content: msgContent}]
     })
   });
   var data = await resp.json();
   if (data.error) throw new Error(data.error.message);
-  return data.candidates[0].content.parts.map(function(p){ return p.text||''; }).join('').trim();
+  return data.choices[0].message.content.trim();
 }
 
 async function runStep6() {
