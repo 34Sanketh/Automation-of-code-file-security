@@ -427,16 +427,18 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
         <p>Your <strong>AI Roadmap already has Firebase Auth</strong>. This step adds the same Google login to <strong>LiftTrack</strong> (and any other site that needs it). Upload the original un-obfuscated file.</p>
       </div>
 
-      <div class="upload-zone" id="zone6" onclick="document.getElementById('file6').click()">
-        <input type="file" id="file6" accept=".html,.htm" style="display:none"/>
-        <span class="u-icon">📄</span>
-        <div class="u-title">Tap to choose HTML file</div>
-        <div class="u-hint">Original un-obfuscated file only</div>
-      </div>
-      <div class="file-chip" id="chip6" style="display:none">
-        <span class="fc-icon">✓</span>
-        <span class="fc-name" id="fname6"></span>
-        <span class="fc-size" id="fsize6"></span>
+      <div style="margin-bottom:12px;">
+        <input type="file" id="file6" accept=".html,.htm,.txt" style="display:none" onchange="readFile(6,this)"/>
+        <button type="button" onclick="document.getElementById('file6').click()" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:28px 20px;border:1.5px dashed var(--border);border-radius:12px;background:var(--cream);cursor:pointer;font-family:'DM Sans',sans-serif;">
+          <span style="font-size:30px;">📄</span>
+          <span style="font-size:15px;font-weight:600;color:var(--text);font-family:'Playfair Display',serif;">Tap to Upload HTML File</span>
+          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">index.html or lifttrack.html</span>
+        </button>
+        <div id="chip6" style="display:none;margin-top:10px;" class="file-chip">
+          <span class="fc-icon">✓</span>
+          <span class="fc-name" id="fname6"></span>
+          <span class="fc-size" id="fsize6"></span>
+        </div>
       </div>
 
       <!-- FIREBASE CONFIG -->
@@ -576,16 +578,185 @@ service cloud.firestore {
         </div>
       </div>
 
-      <div class="upload-zone" id="zone8" onclick="document.getElementById('file8').click()">
-        <input type="file" id="file8" accept=".html,.htm" style="display:none"/>
-        <span class="u-icon">📄</span>
-        <div class="u-title">Tap to choose HTML file</div>
-        <div class="u-hint">Original un-obfuscated file only</div>
+      <div style="margin-bottom:12px;">
+        <input type="file" id="file8" accept=".html,.htm,.txt" style="display:none" onchange="readFile(8,this)"/>
+        <button type="button" onclick="document.getElementById('file8').click()" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:28px 20px;border:1.5px dashed var(--border);border-radius:12px;background:var(--cream);cursor:pointer;font-family:'DM Sans',sans-serif;">
+          <span style="font-size:30px;">📄</span>
+          <span style="font-size:15px;font-weight:600;color:var(--text);font-family:'Playfair Display',serif;">Tap to Upload HTML File</span>
+          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">Original un-obfuscated file only</span>
+        </button>
+        <div id="chip8" style="display:none;margin-top:10px;" class="file-chip">
+          <span class="fc-icon">✓</span>
+          <span class="fc-name" id="fname8"></span>
+          <span class="fc-size" id="fsize8"></span>
+        </div>
       </div>
-      <div class="file-chip" id="chip8" style="display:none">
-        <span class="fc-icon">✓</span>
-        <span class="fc-name" id="fname8"></span>
-        <span class="fc-size" id="fsize8"></span>
+
+      <div class="info-strip">
+        <span class="info-icon">💡</span>
+        <p>Your <strong>AI Roadmap already has Firebase Auth</strong>. This step adds the same Google login to <strong>LiftTrack</strong> (and any other site that needs it). Upload the original un-obfuscated file.</p>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <input type="file" id="file6" accept=".html,.htm,.txt" style="display:none" onchange="readFile(6,this)"/>
+        <button type="button" onclick="document.getElementById('file6').click()" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:28px 20px;border:1.5px dashed var(--border);border-radius:12px;background:var(--cream);cursor:pointer;font-family:'DM Sans',sans-serif;">
+          <span style="font-size:30px;">📄</span>
+          <span style="font-size:15px;font-weight:600;color:var(--text);font-family:'Playfair Display',serif;">Tap to Upload HTML File</span>
+          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">index.html or lifttrack.html</span>
+        </button>
+        <div id="chip6" style="display:none;margin-top:10px;" class="file-chip">
+          <span class="fc-icon">✓</span>
+          <span class="fc-name" id="fname6"></span>
+          <span class="fc-size" id="fsize6"></span>
+        </div>
+      </div>
+
+      <!-- FIREBASE CONFIG -->
+      <div class="field-group">
+        <span class="field-label">Firebase Config</span>
+
+        <!-- SMART PASTE -->
+        <div class="smart-paste-box">
+          <span class="smart-paste-label">⚡ Smart Paste — paste entire firebaseConfig block</span>
+          <textarea id="fb_paste6" rows="4" placeholder="Paste your entire firebaseConfig = { apiKey: '...', authDomain: '...', ... } block here — fields fill automatically!" oninput="autoExtract(6)"></textarea>
+          <div class="extract-status" id="extStatus6"></div>
+        </div>
+
+        <div class="or-divider"><span>or fill manually</span></div>
+
+        <div class="config-stack">
+          <div class="config-field"><label>API Key</label><input type="text" id="fb6_key" placeholder="AIzaSy... (auto-filled from paste)"/></div>
+          <div class="config-field"><label>Auth Domain</label><input type="text" id="fb6_dom" placeholder="your-project.firebaseapp.com"/></div>
+          <div class="config-field"><label>Project ID</label><input type="text" id="fb6_pid" placeholder="your-project-id"/></div>
+          <div class="config-field"><label>App Name (shown on login screen)</label><input type="text" id="fb6_app" placeholder="LiftTrack"/></div>
+        </div>
+      </div>
+
+      <!-- WHERE TO FIND TOGGLE -->
+      <div style="margin-top:12px;">
+        <button onclick="toggleGuide('fbGuide6','fbArrow6')" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--cream2);border:1px solid var(--border-light);border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--brown-dark);">
+          <span>📖 &nbsp;Where to find Firebase config?</span>
+          <span id="fbArrow6" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">▼</span>
+        </button>
+        <div id="fbGuide6" style="display:none;background:var(--white);border:1px solid var(--border-light);border-top:none;border-radius:0 0 10px 10px;padding:16px;">
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+            <div style="display:flex;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--brown-dark);color:var(--gold-light);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div><div style="font-size:12.5px;line-height:1.5;">Open <strong style="color:var(--brown-dark);">console.firebase.google.com</strong> &rarr; tap your project</div></div>
+            <div style="display:flex;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--brown-dark);color:var(--gold-light);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div><div style="font-size:12.5px;line-height:1.5;">Tap <strong style="color:var(--brown-dark);">⚙️ gear icon</strong> &rarr; <strong style="color:var(--brown-dark);">Project settings</strong></div></div>
+            <div style="display:flex;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--brown-dark);color:var(--gold-light);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div><div style="font-size:12.5px;line-height:1.5;">Scroll to <strong style="color:var(--brown-dark);">"Your apps"</strong> &rarr; tap your web app (&lt;/&gt; icon)</div></div>
+            <div style="display:flex;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--brown-dark);color:var(--gold-light);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div><div style="font-size:12.5px;line-height:1.5;">You will see a <strong style="color:var(--brown-dark);">firebaseConfig</strong> block &mdash; paste the whole thing above</div></div>
+          </div>
+          <div style="background:var(--ink);border-radius:8px;padding:12px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.8;color:rgba(255,255,255,0.6);">
+            <span style="color:#90caf9;">const</span> firebaseConfig = {<br/>
+            &nbsp;&nbsp;<span style="color:#6fcf97;">apiKey</span>: <span style="color:#ffe082;">"AIzaSyXXXXXXXXX"</span>, <span style="color:rgba(255,255,255,0.3);">&#8592; copy</span><br/>
+            &nbsp;&nbsp;<span style="color:#6fcf97;">authDomain</span>: <span style="color:#ffe082;">"myapp.firebaseapp.com"</span>, <span style="color:rgba(255,255,255,0.3);">&#8592; copy</span><br/>
+            &nbsp;&nbsp;<span style="color:#6fcf97;">projectId</span>: <span style="color:#ffe082;">"myapp"</span>, <span style="color:rgba(255,255,255,0.3);">&#8592; copy</span><br/>
+            &nbsp;&nbsp;<span style="color:rgba(255,255,255,0.25);">storageBucket, messagingSenderId, appId &#8592; ignore</span><br/>
+            };
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--success);padding:8px 12px;background:var(--success-bg);border-radius:8px;">✅ Only need <strong>apiKey, authDomain, projectId</strong> — ignore the rest!</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btn6" disabled onclick="runStep6()">
+        <span id="btn6i">🔐&nbsp; Inject Google Login</span>
+      </button>
+
+      <div class="log-box" id="log6">
+        <div class="log-hdr"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="log-lbl">Console</span></div>
+        <div class="log-lines" id="ll6"></div>
+      </div>
+
+      <button class="btn btn-download" id="dl6" style="display:none" onclick="download(6)">
+        &#8595;&nbsp; Download File with Google Login Added
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 7: GUIDED -->
+  <div class="sec-rule"><span>Step 7 — Firestore Security Rules (Guided)</span></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-head-row">
+        <div class="step-num">07</div>
+        <div class="card-titles">
+          <div class="card-title">Firestore Security Rules</div>
+          <div class="card-sub">Guided + one-tap copy — only logged-in users can access data</div>
+        </div>
+        <span class="card-badge badge-guide">Guide</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="guide-list">
+        <div class="guide-item"><div class="guide-n">1</div><p>Open <strong>console.firebase.google.com</strong> &rarr; tap your project</p></div>
+        <div class="guide-item"><div class="guide-n">2</div><p>Left menu &rarr; tap <strong>"Firestore"</strong></p></div>
+        <div class="guide-item"><div class="guide-n">3</div><p>Tap the <strong>"Rules"</strong> tab at the top</p></div>
+        <div class="guide-item"><div class="guide-n">4</div><p>Select ALL existing code and <strong>delete everything</strong></p></div>
+        <div class="guide-item"><div class="guide-n">5</div><p>Paste the rules below using the Copy button</p></div>
+        <div class="guide-item"><div class="guide-n">6</div><p>Tap <strong>"Publish"</strong> &rarr; tap <strong>"Publish"</strong> again to confirm</p></div>
+      </div>
+      <div class="code-block">
+        <div class="code-bar">
+          <span class="code-lbl">Firestore Rules</span>
+          <button class="copy-btn" id="cpBtn" onclick="copyRules()">Copy</button>
+        </div>
+        <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null
+                         &amp;&amp; request.auth.uid == userId;
+    }
+  }
+}</pre>
+      </div>
+      <div class="result-pills">
+        <div class="result-pill pill-ok">✅ Only logged-in users can read their own Firestore data</div>
+        <div class="result-pill pill-ok">✅ Each user can only see their own data, not others</div>
+        <div class="result-pill pill-no">❌ Nobody without login can access any data</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 8: AUTOMATED -->
+  <div class="sec-rule"><span>Step 8 — Obfuscate Code (Always Last!)</span></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-head-row">
+        <div class="step-num">08</div>
+        <div class="card-titles">
+          <div class="card-title">Obfuscate Your JavaScript</div>
+          <div class="card-sub">Always do this last — after all edits are complete</div>
+        </div>
+        <span class="card-badge badge-auto">Auto</span>
+      </div>
+    </div>
+    <div class="card-body">
+
+      <div class="info-strip">
+        <span class="info-icon">⚠️</span>
+        <p><strong>Always save your ORIGINAL file to Google Drive first!</strong> Obfuscated code is unreadable — you can never edit it. Only obfuscate when a version is complete and fully tested.</p>
+      </div>
+
+      <div style="background:var(--cream2);border:1px solid var(--border-light);border-radius:10px;padding:14px;margin-bottom:14px;">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Save originals to Google Drive first</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-family:'DM Mono',monospace;font-size:12px;background:var(--ink);color:var(--gold-light);padding:8px 12px;border-radius:6px;">AI-Roadmap-ORIGINAL.html</div>
+          <div style="font-family:'DM Mono',monospace;font-size:12px;background:var(--ink);color:var(--gold-light);padding:8px 12px;border-radius:6px;">LiftTrack-ORIGINAL.html</div>
+          <div style="font-family:'DM Mono',monospace;font-size:12px;background:var(--ink);color:var(--gold-light);padding:8px 12px;border-radius:6px;">Paisa-ORIGINAL.html</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <input type="file" id="file8" accept=".html,.htm"
+          style="display:block;width:100%;padding:14px;background:var(--brown-dark);color:var(--cream);border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;"
+        />
+        <div id="chip8" style="display:none;margin-top:10px;" class="file-chip">
+          <span class="fc-icon">✓</span>
+          <span class="fc-name" id="fname8"></span>
+          <span class="fc-size" id="fsize8"></span>
+        </div>
       </div>
 
       <button class="btn btn-primary" id="btn8" disabled onclick="runStep8()">
@@ -670,18 +841,21 @@ service cloud.firestore {
 var f6cnt=null, f6nm=null, out6=null;
 var f8cnt=null, f8nm=null, out8=null;
 
-// ── File uploads ──
-function handleFile(inputId, onDone) {
-  document.getElementById(inputId).onchange = function() {
-    var f = this.files[0]; if (!f) return;
-    var r = new FileReader();
-    r.onload = function(e) { onDone(e.target.result, f.name, f.size); };
-    r.readAsText(f);
-  };
+// ── File upload handlers ──
+function setupFile(id, onDone) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('change', function() {
+    var f = this.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(e) { onDone(e.target.result, f.name, f.size); };
+    reader.readAsText(f);
+  });
 }
 
-handleFile('file6', function(content, name, size) {
-  f6cnt = content; f6nm = name;
+setupFile('file6', function(text, name, size) {
+  f6cnt = text; f6nm = name;
   document.getElementById('fname6').textContent = name;
   document.getElementById('fsize6').textContent = (size/1024).toFixed(1) + 'KB';
   document.getElementById('chip6').style.display = 'flex';
@@ -689,22 +863,39 @@ handleFile('file6', function(content, name, size) {
   setProgress6(2);
 });
 
-handleFile('file8', function(content, name, size) {
-  f8cnt = content; f8nm = name;
+setupFile('file8', function(text, name, size) {
+  f8cnt = text; f8nm = name;
   document.getElementById('fname8').textContent = name;
   document.getElementById('fsize8').textContent = (size/1024).toFixed(1) + 'KB';
   document.getElementById('chip8').style.display = 'flex';
   document.getElementById('btn8').disabled = false;
 });
 
-// Drag highlight (optional, label handles actual tap)
-['zone6','zone8'].forEach(function(id){
-  var el=document.getElementById(id);
-  if(!el) return;
-  el.addEventListener('dragover',function(e){e.preventDefault();el.classList.add('dragover');});
-  el.addEventListener('dragleave',function(){el.classList.remove('dragover');});
-  el.addEventListener('drop',function(){el.classList.remove('dragover');});
-});
+// ── File read handler ──
+function readFile(n, input) {
+  var f = input.files[0];
+  if (!f) return;
+  var r = new FileReader();
+  r.onload = function(e) {
+    var txt = e.target.result;
+    if (n === 6) {
+      f6cnt = txt; f6nm = f.name;
+      document.getElementById('fname6').textContent = f.name;
+      document.getElementById('fsize6').textContent = (f.size/1024).toFixed(1)+'KB';
+      document.getElementById('chip6').style.display = 'flex';
+      document.getElementById('btn6').disabled = false;
+      setProgress6(2);
+    } else {
+      f8cnt = txt; f8nm = f.name;
+      document.getElementById('fname8').textContent = f.name;
+      document.getElementById('fsize8').textContent = (f.size/1024).toFixed(1)+'KB';
+      document.getElementById('chip8').style.display = 'flex';
+      document.getElementById('btn8').disabled = false;
+    }
+  };
+  r.onerror = function() { alert('Could not read file. Please try again.'); };
+  r.readAsText(f);
+}
 
 // ── Progress ──
 function setProgress6(step) {
