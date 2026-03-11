@@ -237,6 +237,13 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 
 <div class="container">
 
+  <!-- HOSTING WARNING -->
+  <div id="hostingWarn" style="display:none;margin-top:16px;padding:14px 16px;background:#fde8ec;border:1.5px solid rgba(155,35,53,0.3);border-radius:12px;color:#9b2335;">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;font-weight:700;">⚠️ File upload won't work here!</div>
+    <div style="font-size:13px;line-height:1.6;">You are opening this file <strong>locally</strong> from your phone. File upload only works when hosted online.<br/><br/>
+    <strong>Fix:</strong> Upload this HTML file to GitHub &rarr; open from your <strong>GitHub Pages or Netlify URL</strong> instead.</div>
+  </div>
+
   <!-- STEPS 1–5: MANUAL GUIDE -->
   <div class="sec-rule"><span>Steps 1–5 — Setup &amp; Deployment</span></div>
 
@@ -420,10 +427,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
         <p>Your <strong>AI Roadmap already has Firebase Auth</strong>. This step adds the same Google login to <strong>LiftTrack</strong> (and any other site that needs it). Upload the original un-obfuscated file.</p>
       </div>
 
-      <div class="upload-zone" id="zone6">
-        <input type="file" id="file6" accept=".html,.htm"/>
+      <div class="upload-zone" id="zone6" onclick="document.getElementById('file6').click()">
+        <input type="file" id="file6" accept=".html,.htm" style="display:none"/>
         <span class="u-icon">📄</span>
-        <div class="u-title">Upload your HTML file</div>
+        <div class="u-title">Tap to choose HTML file</div>
         <div class="u-hint">Original un-obfuscated file only</div>
       </div>
       <div class="file-chip" id="chip6" style="display:none">
@@ -569,10 +576,10 @@ service cloud.firestore {
         </div>
       </div>
 
-      <div class="upload-zone" id="zone8">
-        <input type="file" id="file8" accept=".html,.htm"/>
+      <div class="upload-zone" id="zone8" onclick="document.getElementById('file8').click()">
+        <input type="file" id="file8" accept=".html,.htm" style="display:none"/>
         <span class="u-icon">📄</span>
-        <div class="u-title">Upload your HTML file to obfuscate</div>
+        <div class="u-title">Tap to choose HTML file</div>
         <div class="u-hint">Original un-obfuscated file only</div>
       </div>
       <div class="file-chip" id="chip8" style="display:none">
@@ -651,41 +658,49 @@ service cloud.firestore {
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── State ──
+// Detect if opened locally (file:// or content://) and warn user
+(function(){
+  var url = window.location.href;
+  if(url.indexOf('file:') === 0 || url.indexOf('content:') === 0 || url.indexOf('localhost') === -1 && url.indexOf('http') === -1) {
+    var warn = document.getElementById('hostingWarn');
+    if(warn) warn.style.display = 'block';
+  }
+})();
+
 var f6cnt=null, f6nm=null, out6=null;
 var f8cnt=null, f8nm=null, out8=null;
 
 // ── File uploads ──
-document.getElementById('file6').addEventListener('change', function() {
-  var f=this.files[0]; if(!f) return;
-  new FileReader().onload = function(e) {
-    f6cnt=e.target.result; f6nm=f.name;
-    document.getElementById('fname6').textContent=f.name;
-    document.getElementById('fsize6').textContent=(f.size/1024).toFixed(1)+'KB';
-    document.getElementById('chip6').style.display='flex';
-    document.getElementById('btn6').disabled=false;
-    setProgress6(2);
+function handleFile(inputId, onDone) {
+  document.getElementById(inputId).onchange = function() {
+    var f = this.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function(e) { onDone(e.target.result, f.name, f.size); };
+    r.readAsText(f);
   };
-  (new FileReader()).addEventListener ? (function(){ var r=new FileReader(); r.onload=function(e){f6cnt=e.target.result;f6nm=f.name;document.getElementById('fname6').textContent=f.name;document.getElementById('fsize6').textContent=(f.size/1024).toFixed(1)+'KB';document.getElementById('chip6').style.display='flex';document.getElementById('btn6').disabled=false;setProgress6(2);}; r.readAsText(f); })() : null;
+}
+
+handleFile('file6', function(content, name, size) {
+  f6cnt = content; f6nm = name;
+  document.getElementById('fname6').textContent = name;
+  document.getElementById('fsize6').textContent = (size/1024).toFixed(1) + 'KB';
+  document.getElementById('chip6').style.display = 'flex';
+  document.getElementById('btn6').disabled = false;
+  setProgress6(2);
 });
 
-document.getElementById('file8').addEventListener('change', function() {
-  var f=this.files[0]; if(!f) return;
-  var r=new FileReader();
-  r.onload=function(e){ f8cnt=e.target.result; f8nm=f.name; document.getElementById('fname8').textContent=f.name; document.getElementById('fsize8').textContent=(f.size/1024).toFixed(1)+'KB'; document.getElementById('chip8').style.display='flex'; document.getElementById('btn8').disabled=false; };
-  r.readAsText(f);
+handleFile('file8', function(content, name, size) {
+  f8cnt = content; f8nm = name;
+  document.getElementById('fname8').textContent = name;
+  document.getElementById('fsize8').textContent = (size/1024).toFixed(1) + 'KB';
+  document.getElementById('chip8').style.display = 'flex';
+  document.getElementById('btn8').disabled = false;
 });
 
-// Fix file6 handler properly
-document.getElementById('file6').onchange = function() {
-  var f=this.files[0]; if(!f) return;
-  var r=new FileReader();
-  r.onload=function(e){ f6cnt=e.target.result; f6nm=f.name; document.getElementById('fname6').textContent=f.name; document.getElementById('fsize6').textContent=(f.size/1024).toFixed(1)+'KB'; document.getElementById('chip6').style.display='flex'; document.getElementById('btn6').disabled=false; setProgress6(2); };
-  r.readAsText(f);
-};
-
-// Drag
+// Drag highlight (optional, label handles actual tap)
 ['zone6','zone8'].forEach(function(id){
   var el=document.getElementById(id);
+  if(!el) return;
   el.addEventListener('dragover',function(e){e.preventDefault();el.classList.add('dragover');});
   el.addEventListener('dragleave',function(){el.classList.remove('dragover');});
   el.addEventListener('drop',function(){el.classList.remove('dragover');});
