@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanketh's AI Roadmap 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBWGbK_7A2BKwqzYqiR6V4BAZmR3RC67gk",
+    authDomain: "ai-road-map-by-sanket.firebaseapp.com",
+    projectId: "ai-road-map-by-sanket",
+    storageBucket: "ai-road-map-by-sanket.firebasestorage.app",
+    messagingSenderId: "52956400357",
+    appId: "1:52956400357:web:5e4dc214022be8559f620c",
+    measurementId: "G-RHD3P00N8P"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+  let currentUser = null;
+  let progress = {};
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      currentUser = user;
+      showUserUI(user);
+      await loadProgress(user.uid);
+      renderProgress();
+    } else {
+      currentUser = null;
+      showLoginUI();
+      clearProgress();
+    }
+  });
+
+  window.signInGoogle = async () => {
+    try {
+      document.getElementById('login-btn').innerHTML = '<span class="spin">⟳</span> Signing in…';
+      await signInWithPopup(auth, provider);
+    } catch(e) {
+      document.getElementById('login-btn').innerHTML = 'G&nbsp;&nbsp;Try Again';
+    }
+  };
+
+  window.signOutUser = async () => { await signOut(auth); };
+
+  async function loadProgress(uid) {
+    try {
+      const snap = await getDoc(doc(db, "users", uid));
+      progress = snap.exists() ? (snap.data().progress || {}) : {};
+      if (!snap.exists()) await setDoc(doc(db, "users", uid), { progress: {}, createdAt: new Date().toISOString() });
+    } catch(e) { console.error(e); }
+  }
+
+  async function saveProgress() {
+    if (!currentUser) return;
+    try {
+      await updateDoc(doc(db, "users", currentUser.uid), { progress, updatedAt: new Date().toISOString() });
+    } catch(e) {
+      await setDoc(doc(db, "users", currentUser.uid), { progress, updatedAt: new Date().toISOString() });
+    }
+  }
+
+  window.toggleItem = async (id) => {
+    if (!currentUser) { showToast("Sign in to track progress!"); return; }
+    progress[id] = !progress[id];
+    renderProgress();
+    await saveProgress();
+    showToast(progress[id] ? "✓ Saved to cloud" : "Unmarked");
+  };
+
+  function renderProgress() {
+    document.querySelectorAll('[data-track]').forEach(el => {
+      el.classList.toggle('done', !!progress[el.dataset.track]);
+    });
+    // Stage bars
+    document.querySelectorAll('[data-stage-bar]').forEach(bar => {
+      const s = bar.dataset.stageBar;
+      const items = document.querySelectorAll(`[data-track^="${s}-"]`);
+      const done = [...items].filter(i => progress[i.dataset.track]).length;
+      const pct = items.length ? Math.round(done/items.length*100) : 0;
+      bar.style.width = pct + '%';
+      const lbl = bar.closest('.level-card')?.querySelector('.pct-lbl');
+      if (lbl) lbl.textContent = pct + '%';
+    });
+    // Overall
+    const all = document.querySelectorAll('[data-track]');
+    const tot = [...all].filter(i => progress[i.dataset.track]).length;
+    const pct = all.length ? Math.round(tot/all.length*100) : 0;
+    const ob = document.getElementById('overall-bar');
+    const op = document.getElementById('overall-pct');
+    const oc = document.getElementById('overall-count');
+    if (ob) ob.style.width = pct + '%';
+    if (op) op.textContent = pct + '%';
+    if (oc) oc.textContent = `${tot} of ${all.length} items complete`;
+  }
+
+  function clearProgress() { progress = {}; renderProgress(); }
+
+  function showUserUI(user) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('user-bar').style.display = 'flex';
+    document.getElementById('user-avatar').src = user.photoURL || '';
+    document.getElementById('user-name').textContent = user.displayName?.split(' ')[0] || 'You';
+    document.getElementById('main-wrap').style.opacity = '1';
+    document.getElementById('main-wrap').style.pointerEvents = 'auto';
+  }
+
+  function showLoginUI() {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('user-bar').style.display = 'none';
+    document.getElementById('main-wrap').style.opacity = '0.15';
+    document.getElementById('main-wrap').style.pointerEvents = 'none';
+  }
+</script>
+
+<style>
+:root {
+  --ink: #0a0a0f;
+  --paper: #f5f0e8;
+  --cream: #ede8dc;
+  --gold: #c9a84c;
+  --gold2: #e8c97a;
+  --teal: #0d9488;
+  --coral: #e05c3a;
+  --blue: #2563eb;
+  --text: #1a1a2e;
+  --muted: #7a7a8a;
+  --border: rgba(0,0,0,0.08);
+  --card: rgba(255,255,255,0.7);
+  --r: 16px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+
+body {
+  background: var(--paper);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* GRAIN TEXTURE */
+body::before {
+  content:'';
+  position:fixed;inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:1000;opacity:0.5;
+}
+
+/* ── LOGIN ── */
+#login-screen {
+  position:fixed;inset:0;z-index:500;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(10,10,15,0.85);
+  backdrop-filter:blur(20px);
+}
+.login-box {
+  background: var(--paper);
+  border:2px solid var(--gold);
+  border-radius:24px;
+  padding:52px 44px;
+  text-align:center;
+  max-width:380px;width:90%;
+  position:relative;
+  animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.login-box::before {
+  content:'';
+  position:absolute;top:-1px;left:20%;right:20%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+@keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.login-eyebrow{font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+.login-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;line-height:1.1;color:var(--ink);margin-bottom:8px;}
+.login-sub{color:var(--muted);font-size:13px;margin-bottom:36px;line-height:1.6;}
+#login-btn {
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  background:var(--ink);color:white;
+  border:none;border-radius:12px;
+  padding:15px 28px;width:100%;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:14px;font-weight:600;cursor:pointer;
+  transition:transform 0.2s,background 0.2s;
+  letter-spacing:0.3px;
+}
+#login-btn:hover{transform:translateY(-2px);background:#222;}
+.g-icon{width:18px;height:18px;flex-shrink:0;}
+.spin{display:inline-block;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── NAV ── */
+nav {
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 32px;
+  background:rgba(245,240,232,0.85);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  font-family:'Playfair Display',serif;
+  font-weight:700;font-size:17px;
+  color:var(--ink);letter-spacing:-0.3px;
+}
+.nav-logo span{color:var(--gold);}
+.nav-links{display:flex;gap:24px;list-style:none;}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;transition:color 0.2s;}
+.nav-links a:hover{color:var(--ink);}
+#user-bar{display:none;align-items:center;gap:8px;}
+#user-avatar{width:26px;height:26px;border-radius:50%;border:2px solid var(--gold);}
+#user-name{font-size:13px;font-weight:600;color:var(--ink);}
+.signout-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all 0.2s;}
+.signout-btn:hover{border-color:var(--coral);color:var(--coral);}
+
+#main-wrap{opacity:0.15;pointer-events:none;transition:opacity 0.5s;}
+
+/* ── HERO ── */
+.hero {
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  padding:120px 24px 80px;
+  position:relative;
+  background: linear-gradient(160deg, #f5f0e8 0%, #ede4d0 50%, #e8dcc8 100%);
+  overflow:hidden;
+}
+.hero::before {
+  content:'2026';
+  position:absolute;
+  font-family:'Playfair Display',serif;
+  font-size:clamp(120px,25vw,320px);
+  font-weight:900;
+  color:rgba(0,0,0,0.04);
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  white-space:nowrap;
+  pointer-events:none;
+  letter-spacing:-8px;
+}
+.hero-kicker {
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid var(--gold);
+  border-radius:100px;padding:6px 18px;
+  font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:28px;
+  background:rgba(201,168,76,0.08);
+  animation:fadeUp 0.7s ease both;
+}
+.hero-kicker .dot{width:5px;height:5px;background:var(--gold);border-radius:50%;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+.hero h1 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(44px,8vw,96px);
+  font-weight:900;line-height:0.95;
+  letter-spacing:-3px;
+  margin-bottom:8px;
+  animation:fadeUp 0.8s ease 0.1s both;
+  color:var(--ink);
+}
+.hero h1 em{font-style:italic;color:var(--gold);}
+.hero-sub-title {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(18px,3vw,32px);
+  font-weight:700;font-style:italic;
+  color:var(--muted);margin-bottom:28px;
+  animation:fadeUp 0.8s ease 0.15s both;
+}
+.hero-desc {
+  max-width:520px;color:var(--muted);font-size:16px;
+  margin-bottom:48px;line-height:1.7;
+  animation:fadeUp 0.8s ease 0.2s both;
+}
+.hero-desc strong{color:var(--ink);}
+
+/* OVERALL PROGRESS */
+.overall-card {
+  background:var(--ink);
+  border-radius:20px;
+  padding:24px 32px;
+  width:100%;max-width:440px;
+  animation:fadeUp 0.8s ease 0.3s both;
+  position:relative;overflow:hidden;
+}
+.overall-card::before{
+  content:'';position:absolute;
+  top:-40px;right:-40px;
+  width:120px;height:120px;
+  background:radial-gradient(circle,rgba(201,168,76,0.2),transparent 70%);
+}
+.oc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.oc-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);}
+#overall-pct{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:var(--gold2);}
+.oc-bar-bg{height:3px;background:rgba(255,255,255,0.1);border-radius:100px;overflow:hidden;margin-bottom:10px;}
+.oc-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0%;border-radius:100px;transition:width 0.6s ease;}
+#overall-count{font-size:12px;color:rgba(255,255,255,0.35);}
+
+.hero-btns{
+  display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+  margin-top:28px;
+  animation:fadeUp 0.8s ease 0.4s both;
+}
+.btn-ink{
+  background:var(--ink);color:white;
+  border:none;border-radius:12px;
+  padding:14px 28px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:13px;font-weight:700;
+  letter-spacing:0.5px;text-transform:uppercase;
+  cursor:pointer;text-decoration:none;
+  display:inline-flex;align-items:center;gap:8px;
+  transition:transform 0.2s,box-shadow 0.2s;
+  box-shadow:0 4px 20px rgba(0,0,0,0.2);
+}
+.btn-ink:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,0.3);}
+.btn-outline{
+  background:transparent;
+  border:1px solid rgba(0,0,0,0.15);
+  color:var(--muted);border-radius:12px;
+  padding:14px 28px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:13px;font-weight:600;
+  letter-spacing:0.3px;
+  cursor:pointer;text-decoration:none;
+  transition:border-color 0.2s,color 0.2s;
+}
+.btn-outline:hover{border-color:var(--ink);color:var(--ink);}
+
+/* STATS ROW */
+.stats-row{
+  display:flex;justify-content:center;gap:0;
+  max-width:600px;margin:60px auto 0;
+  background:var(--ink);border-radius:20px;overflow:hidden;
+  animation:fadeUp 0.8s ease 0.5s both;
+}
+.stat{flex:1;padding:20px 16px;text-align:center;border-right:1px solid rgba(255,255,255,0.08);}
+.stat:last-child{border-right:none;}
+.stat-num{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--gold2);display:block;margin-bottom:4px;}
+.stat-label{font-size:10px;color:rgba(255,255,255,0.35);font-weight:600;letter-spacing:0.8px;text-transform:uppercase;}
+
+/* SCROLL HINT */
+.scroll-hint{
+  position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  color:var(--muted);font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  animation:fadeUp 1s ease 0.8s both;
+}
+.s-line{width:1px;height:36px;background:linear-gradient(to bottom,var(--gold),transparent);animation:breathe 2s ease-in-out infinite;}
+@keyframes breathe{0%,100%{opacity:0.4}50%{opacity:1}}
+
+/* ── SECTIONS ── */
+.wrap{max-width:900px;margin:0 auto;padding:0 24px;}
+
+.chapter {
+  padding:100px 0;
+  border-top:1px solid var(--border);
+  position:relative;
+}
+.chapter-num {
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:500;
+  color:var(--gold);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.chapter-num::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--gold),transparent);max-width:60px;}
+.chapter-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(28px,5vw,52px);
+  font-weight:900;letter-spacing:-1.5px;
+  line-height:1.05;margin-bottom:12px;
+  color:var(--ink);
+}
+.chapter-title em{font-style:italic;color:var(--gold);}
+.chapter-sub{color:var(--muted);max-width:500px;margin-bottom:56px;font-size:15px;}
+
+/* ── LEVEL CARDS ── */
+.levels-stack{display:flex;flex-direction:column;gap:20px;}
+
+.level-card {
+  background:white;
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:0;
+  overflow:hidden;
+  opacity:0;transform:translateY(24px);
+  transition:opacity 0.5s ease,transform 0.5s ease,box-shadow 0.3s;
+}
+.level-card.visible{opacity:1;transform:translateY(0);}
+.level-card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.08);}
+
+.level-header{
+  display:flex;align-items:stretch;
+  border-bottom:1px solid var(--border);
+}
+.level-num-block{
+  width:72px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px 12px;
+  position:relative;
+}
+.lnb-1{background:#0a0a0f;}
+.lnb-2{background:#0d4a42;}
+.lnb-3{background:#7c2d12;}
+.lnb-4{background:#1e3a5f;}
+.lnb-5{background:#4a1d6b;}
+.lnb-ant{background:#1a3a2a;}
+.level-num{
+  font-family:'Playfair Display',serif;
+  font-size:28px;font-weight:900;
+  color:rgba(255,255,255,0.2);
+  line-height:1;
+}
+.level-emoji{font-size:20px;margin-top:4px;}
+.level-meta{flex:1;padding:18px 20px;}
+.level-source{
+  font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:6px;
+}
+.source-dot{width:5px;height:5px;border-radius:50%;}
+.sd-vs{background:#f59e0b;}
+.sd-ant{background:#10b981;}
+.level-name{
+  font-family:'Playfair Display',serif;
+  font-size:18px;font-weight:700;
+  color:var(--ink);letter-spacing:-0.3px;margin-bottom:4px;
+}
+.level-tagline{color:var(--muted);font-size:13px;line-height:1.5;}
+.level-badge{
+  display:flex;align-items:center;padding:18px 20px;
+  flex-shrink:0;
+}
+.lbadge{
+  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  border-radius:8px;padding:5px 12px;white-space:nowrap;
+}
+.lb-done{color:#059669;background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.2);}
+.lb-now{color:#d97706;background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.25);}
+.lb-next{color:var(--blue);background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.2);}
+.lb-later{color:var(--muted);background:rgba(0,0,0,0.04);border:1px solid var(--border);}
+
+.level-body{padding:20px 20px 20px 92px;}
+
+/* Progress bar in card */
+.lcard-progress{margin-bottom:16px;}
+.lcp-top{display:flex;justify-content:space-between;margin-bottom:6px;}
+.lcp-label{font-size:11px;color:var(--muted);font-weight:500;}
+.pct-lbl{font-size:11px;font-weight:700;color:var(--teal);}
+.lcp-bg{height:3px;background:rgba(0,0,0,0.06);border-radius:100px;overflow:hidden;}
+.lcp-fill{height:100%;background:linear-gradient(90deg,var(--teal),#34d399);width:0%;transition:width 0.5s ease;border-radius:100px;}
+
+/* Track items */
+.track-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.ti{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  cursor:pointer;
+  transition:border-color 0.2s,background 0.2s,transform 0.15s;
+  background:rgba(0,0,0,0.01);
+  text-decoration:none;
+  color:var(--text);
+}
+.ti:hover{border-color:rgba(0,0,0,0.15);background:rgba(0,0,0,0.03);transform:translateX(3px);}
+.ti.done{border-color:rgba(5,150,105,0.3);background:rgba(5,150,105,0.04);}
+.ti.done .ti-check{background:#059669;border-color:#059669;}
+.ti.done .ti-check svg{opacity:1;}
+.ti.done .ti-label{color:var(--ink);}
+.ti-check{
+  width:18px;height:18px;border-radius:50%;
+  border:1.5px solid rgba(0,0,0,0.15);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all 0.2s;
+}
+.ti-check svg{opacity:0;width:9px;height:9px;transition:opacity 0.2s;}
+.ti-icon{font-size:14px;flex-shrink:0;}
+.ti-label{font-size:12.5px;font-weight:500;flex:1;line-height:1.3;}
+.ti-link{
+  font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  color:var(--teal);white-space:nowrap;
+  text-decoration:none;
+  padding:3px 8px;border:1px solid rgba(13,148,136,0.2);border-radius:6px;
+  transition:background 0.2s;
+}
+.ti-link:hover{background:rgba(13,148,136,0.08);}
+
+.skill-row{display:flex;flex-wrap:wrap;gap:5px;}
+.sk{
+  font-size:11px;color:var(--muted);
+  background:rgba(0,0,0,0.04);
+  border:1px solid var(--border);
+  border-radius:100px;padding:2px 9px;
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* DIVIDER CHAPTER */
+.chapter-divider{
+  text-align:center;
+  padding:60px 24px;
+  background:var(--ink);
+  color:white;
+  margin:0;
+}
+.cd-label{font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:16px;}
+.cd-title{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,56px);font-weight:900;line-height:1.0;letter-spacing:-1.5px;}
+.cd-title em{font-style:italic;color:var(--gold2);}
+
+/* VS ROADMAP — COOK/CHEF/ORCHESTRATOR */
+.evolution-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--border);border-radius:16px;overflow:hidden;
+  border:1px solid var(--border);margin-bottom:48px;
+}
+.evo-card{background:white;padding:24px 20px;}
+.evo-card:first-child{border-radius:16px 0 0 16px;}
+.evo-card:last-child{border-radius:0 16px 16px 0;}
+.evo-icon{font-size:28px;margin-bottom:10px;}
+.evo-stage{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}
+.evo-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+.evo-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;}
+.evo-time{font-size:11px;font-weight:700;color:var(--teal);}
+
+/* MODEL TABLE */
+.model-table{
+  background:white;border:1px solid var(--border);border-radius:16px;overflow:hidden;
+  margin-bottom:48px;
+}
+.mt-header{
+  display:grid;grid-template-columns:1.5fr 1fr 1.5fr;
+  gap:0;padding:12px 20px;
+  background:var(--ink);
+}
+.mt-header span{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.4);}
+.mt-row{
+  display:grid;grid-template-columns:1.5fr 1fr 1.5fr;
+  gap:0;padding:12px 20px;
+  border-top:1px solid var(--border);
+  align-items:center;
+}
+.mt-row:hover{background:rgba(0,0,0,0.02);}
+.mt-model{font-weight:600;font-size:13px;color:var(--ink);}
+.mt-best{font-size:11px;color:var(--muted);}
+.mt-badge{
+  font-size:10px;font-weight:700;letter-spacing:0.5px;
+  border-radius:6px;padding:3px 8px;display:inline-block;
+}
+.mt-claude{color:#059669;background:rgba(5,150,105,0.1);}
+.mt-openai{color:var(--blue);background:rgba(37,99,235,0.1);}
+.mt-gemini{color:#7c3aed;background:rgba(124,58,237,0.1);}
+.mt-perp{color:var(--coral);background:rgba(224,92,58,0.1);}
+.mt-ds{color:var(--muted);background:rgba(0,0,0,0.05);}
+
+/* RESOURCES GRID */
+.res-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:12px;
+}
+.res-card{
+  background:white;border:1px solid var(--border);
+  border-radius:14px;padding:18px;
+  text-decoration:none;display:block;
+  opacity:0;transform:translateY(16px);
+  transition:opacity 0.4s ease,transform 0.4s ease,border-color 0.2s,box-shadow 0.2s;
+  color:var(--text);
+}
+.res-card.visible{opacity:1;transform:translateY(0);}
+.res-card:hover{border-color:rgba(0,0,0,0.12);box-shadow:0 8px 24px rgba(0,0,0,0.07);transform:translateY(-2px);}
+.res-card.done{border-color:rgba(5,150,105,0.3);}
+.rc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.rc-icon{font-size:20px;}
+.rc-check{
+  width:18px;height:18px;border-radius:50%;
+  border:1.5px solid rgba(0,0,0,0.1);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all 0.2s;
+}
+.res-card.done .rc-check{background:#059669;border-color:#059669;}
+.rc-check svg{opacity:0;width:9px;height:9px;transition:opacity 0.2s;}
+.res-card.done .rc-check svg{opacity:1;}
+.rc-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px;line-height:1.3;}
+.rc-desc{color:var(--muted);font-size:12px;line-height:1.5;}
+.rc-link{display:inline-flex;align-items:center;gap:3px;margin-top:10px;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--teal);}
+
+/* VIDEO CARDS */
+.vid-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:12px;
+}
+.vid-card{
+  background:white;border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;
+  text-decoration:none;display:block;
+  opacity:0;transform:translateY(16px);
+  transition:opacity 0.4s ease,transform 0.4s ease,border-color 0.2s,box-shadow 0.2s;
+}
+.vid-card.visible{opacity:1;transform:translateY(0);}
+.vid-card:hover{border-color:rgba(0,0,0,0.12);box-shadow:0 8px 24px rgba(0,0,0,0.07);transform:translateY(-2px);}
+.vid-card.done{border-color:rgba(5,150,105,0.3);}
+.vthumb{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.vbg{position:absolute;inset:0;}
+.play-btn{
+  width:38px;height:38px;background:white;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;z-index:1;
+  transition:transform 0.2s;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3);
+}
+.vid-card:hover .play-btn{transform:scale(1.1);}
+.play-btn svg{fill:#111;width:12px;height:12px;margin-left:2px;}
+.watched-pill{
+  font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:#059669;background:rgba(5,150,105,0.15);
+  border:1px solid rgba(5,150,105,0.3);
+  border-radius:100px;padding:2px 8px;
+  position:relative;z-index:1;
+  display:none;margin-top:6px;
+}
+.vid-card.done .watched-pill{display:block;}
+.vinfo{padding:12px 14px;}
+.vtag{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--coral);margin-bottom:3px;}
+.vtitle{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:2px;}
+.vchan{font-size:11px;color:var(--muted);}
+.vmark{font-size:10px;color:var(--muted);margin-top:6px;cursor:pointer;transition:color 0.2s;}
+.vmark:hover{color:var(--teal);}
+
+/* SALARY */
+.sal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;}
+.sal-card{
+  background:white;border:1px solid var(--border);
+  border-radius:14px;padding:18px;
+  transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;
+}
+.sal-card:hover{border-color:rgba(0,0,0,0.12);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.06);}
+.sal-role{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px;line-height:1.3;}
+.sal-num{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);margin-bottom:2px;}
+.sal-note{font-size:11px;color:var(--muted);}
+
+/* TIMELINE */
+.tl-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  background:var(--ink);border-radius:16px;overflow:hidden;
+}
+.tl-item{padding:22px 16px;border-right:1px solid rgba(255,255,255,0.06);text-align:center;}
+.tl-item:last-child{border-right:none;}
+.tl-num{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--gold2);display:block;margin-bottom:4px;}
+.tl-lbl{font-size:10px;color:rgba(255,255,255,0.3);font-weight:600;letter-spacing:0.8px;text-transform:uppercase;}
+
+/* PRD METHOD */
+.prd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:14px;overflow:hidden;border:1px solid var(--border);margin-bottom:32px;}
+.prd-card{background:white;padding:20px;}
+.prd-letter{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:rgba(0,0,0,0.06);line-height:1;margin-bottom:4px;}
+.prd-name{font-weight:700;color:var(--ink);font-size:13px;margin-bottom:4px;}
+.prd-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--ink);color:white;
+  border-radius:100px;padding:10px 22px;
+  font-size:13px;font-weight:500;
+  z-index:600;opacity:0;
+  transition:opacity 0.2s,transform 0.2s;
+  pointer-events:none;white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+footer{
+  background:var(--ink);color:rgba(255,255,255,0.3);
+  text-align:center;padding:52px 24px;
+  font-size:13px;
+}
+footer strong{color:var(--gold2);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:640px){
+  nav{padding:12px 16px;}
+  .nav-links{display:none;}
+  .hero{padding:100px 20px 60px;}
+  .stats-row{flex-direction:column;gap:0;}
+  .stat{border-right:none;border-bottom:1px solid rgba(255,255,255,0.08);}
+  .evolution-grid,.prd-grid{grid-template-columns:1fr;}
+  .tl-grid{grid-template-columns:repeat(2,1fr);}
+  .level-body{padding:16px;}
+  .level-header{flex-direction:column;}
+  .level-num-block{width:100%;flex-direction:row;padding:12px 16px;gap:8px;}
+  .level-badge{padding:0 16px 12px;}
+  .model-table{overflow-x:auto;}
+  .mt-header,.mt-row{min-width:500px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-eyebrow">Cloud Synced · Private · Free</div>
+    <div class="login-title">Sanketh's AI Roadmap 2026</div>
+    <div class="login-sub">Sign in with Google to save your progress across all devices. Every tick, every stage — synced to the cloud.</div>
+    <button id="login-btn" onclick="signInGoogle()">
+      <svg class="g-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Think<span>With</span>Sanketh</div>
+  <ul class="nav-links">
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#vaibhav">AI Generalist</a></li>
+    <li><a href="#courses">Courses</a></li>
+    <li><a href="#videos">Videos</a></li>
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#salary">Salary</a></li>
+  </ul>
+  <div id="user-bar">
+    <img id="user-avatar" src="" alt="">
+    <span id="user-name"></span>
+    <button class="signout-btn" onclick="signOutUser()">Sign out</button>
+  </div>
+</nav>
+
+<div id="main-wrap">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-kicker"><div class="dot"></div>February 2026 Edition · Cloud Synced</div>
+  <h1>Master <em>AI.</em><br>Own the Future.</h1>
+  <div class="hero-sub-title">No Code. No Limits. Just Curiosity.</div>
+  <p class="hero-desc">
+    Two roadmaps in one — <strong>Anthropic's official courses</strong> and <strong>Vaibhav Sisinty's AI Generalist framework.</strong> Every resource, every tool, every stage. Tick as you go. Synced to Google Cloud.
+  </p>
+
+  <div class="overall-card">
+    <div class="oc-top">
+      <span class="oc-label">Your Overall Progress</span>
+      <span id="overall-pct">0%</span>
+    </div>
+    <div class="oc-bar-bg"><div class="oc-bar-fill" id="overall-bar"></div></div>
+    <div id="overall-count">Sign in to start tracking</div>
+  </div>
+
+  <div class="hero-btns">
+    <a href="#roadmap" class="btn-ink">↓ Begin Journey</a>
+    <a href="https://anthropic.skilljar.com" target="_blank" class="btn-outline">Anthropic Courses ↗</a>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><span class="stat-num">108K</span><span class="stat-label">Jobs cut Jan 2026</span></div>
+    <div class="stat"><span class="stat-num">56%</span><span class="stat-label">AI salary premium</span></div>
+    <div class="stat"><span class="stat-num">92%</span><span class="stat-label">Devs using AI</span></div>
+    <div class="stat"><span class="stat-num">40%</span><span class="stat-label">Apps with AI agents</span></div>
+  </div>
+
+  <div class="scroll-hint"><div class="s-line"></div>Scroll</div>
+</div>
+
+<!-- ANTHROPIC ROADMAP -->
+<div class="chapter" id="roadmap">
+  <div class="wrap">
+    <div class="chapter-num">01 · Anthropic Path</div>
+    <h2 class="chapter-title">Your <em>4-Stage</em><br>Non-Tech Roadmap</h2>
+    <p class="chapter-sub">Built around Anthropic's official courses. Tap any item to mark it complete — saved to cloud instantly. You're at Stage 1 already.</p>
+
+    <div class="levels-stack">
+
+      <!-- STAGE 1 -->
+      <div class="level-card visible">
+        <div class="level-header">
+          <div class="level-num-block lnb-1"><div class="level-num">1</div><div class="level-emoji">🧠</div></div>
+          <div class="level-meta">
+            <div class="level-source"><div class="source-dot sd-ant"></div>Anthropic Official</div>
+            <div class="level-name">Understanding AI Tools</div>
+            <div class="level-tagline">How LLMs work, responsible use, AI for real productivity</div>
+          </div>
+          <div class="level-badge"><div class="lbadge lb-done">✓ Done</div></div>
+        </div>
+        <div class="level-body">
+          <div class="lcard-progress">
+            <div class="lcp-top"><span class="lcp-label">Stage progress</span><span class="pct-lbl">0%</span></div>
+            <div class="lcp-bg"><div class="lcp-fill" data-stage-bar="a1"></div></div>
+          </div>
+          <div class="track-list">
+            <div class="ti" data-track="a1-claude101" onclick="toggleItem('a1-claude101')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🧠</span><span class="ti-label">Claude 101</span>
+              <a href="https://anthropic.skilljar.com/claude-101" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="a1-students" onclick="toggleItem('a1-students')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🎓</span><span class="ti-label">AI Fluency for Students</span>
+              <a href="https://anthropic.skilljar.com/ai-fluency-for-students" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+          </div>
+          <div class="skill-row"><span class="sk">How LLMs work</span><span class="sk">Responsible AI</span><span class="sk">AI productivity</span><span class="sk">Summarization</span></div>
+        </div>
+      </div>
+
+      <!-- STAGE 2 -->
+      <div class="level-card">
+        <div class="level-header">
+          <div class="level-num-block lnb-2"><div class="level-num">2</div><div class="level-emoji">🔷</div></div>
+          <div class="level-meta">
+            <div class="level-source"><div class="source-dot sd-ant"></div>Anthropic Official</div>
+            <div class="level-name">Prompt Engineering</div>
+            <div class="level-tagline">Structured prompts, chain-of-thought, prompt libraries</div>
+          </div>
+          <div class="level-badge"><div class="lbadge lb-now">▶ Focus Now</div></div>
+        </div>
+        <div class="level-body">
+          <div class="lcard-progress">
+            <div class="lcp-top"><span class="lcp-label">Stage progress</span><span class="pct-lbl">0%</span></div>
+            <div class="lcp-bg"><div class="lcp-fill" data-stage-bar="a2"></div></div>
+          </div>
+          <div class="track-list">
+            <div class="ti" data-track="a2-framework" onclick="toggleItem('a2-framework')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🔷</span><span class="ti-label">AI Fluency: Framework & Foundations</span>
+              <a href="https://anthropic.skilljar.com/ai-fluency-framework-foundations" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="a2-learnprompting" onclick="toggleItem('a2-learnprompting')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">📖</span><span class="ti-label">Learn Prompting (Free Guide)</span>
+              <a href="https://learnprompting.org/docs/introduction" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="a2-docs" onclick="toggleItem('a2-docs')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">📜</span><span class="ti-label">Anthropic Prompt Engineering Docs</span>
+              <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+          </div>
+          <div class="skill-row"><span class="sk">PRD method</span><span class="sk">Chain-of-thought</span><span class="sk">Few-shot</span><span class="sk">Prompt libraries</span><span class="sk">Role prompting</span></div>
+        </div>
+      </div>
+
+      <!-- STAGE 3 -->
+      <div class="level-card">
+        <div class="level-header">
+          <div class="level-num-block lnb-3"><div class="level-num">3</div><div class="level-emoji">⚡</div></div>
+          <div class="level-meta">
+            <div class="level-source"><div class="source-dot sd-ant"></div>Anthropic Official</div>
+            <div class="level-name">AI Workflow Design & Automation</div>
+            <div class="level-tagline">No-code automations with Zapier, Notion AI, Make</div>
+          </div>
+          <div class="level-badge"><div class="lbadge lb-next">Next Up</div></div>
+        </div>
+        <div class="level-body">
+          <div class="lcard-progress">
+            <div class="lcp-top"><span class="lcp-label">Stage progress</span><span class="pct-lbl">0%</span></div>
+            <div class="lcp-bg"><div class="lcp-fill" data-stage-bar="a3"></div></div>
+          </div>
+          <div class="track-list">
+            <div class="ti" data-track="a3-teaching" onclick="toggleItem('a3-teaching')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">📢</span><span class="ti-label">Teaching AI Fluency</span>
+              <a href="https://anthropic.skilljar.com/teaching-ai-fluency" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="a3-nonprofits" onclick="toggleItem('a3-nonprofits')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">💡</span><span class="ti-label">AI Fluency for Nonprofits</span>
+              <a href="https://anthropic.skilljar.com/ai-fluency-for-nonprofits" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="a3-educators" onclick="toggleItem('a3-educators')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🏫</span><span class="ti-label">AI Fluency for Educators</span>
+              <a href="https://anthropic.skilljar.com/ai-fluency-for-educators" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="a3-zapier" onclick="toggleItem('a3-zapier')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">⚡</span><span class="ti-label">Zapier AI Automation Guide</span>
+              <a href="https://zapier.com/learn/artificial-intelligence/ai-automation/" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+          </div>
+          <div class="skill-row"><span class="sk">Zapier</span><span class="sk">Notion AI</span><span class="sk">Make.com</span><span class="sk">Social automation</span><span class="sk">Report automation</span></div>
+        </div>
+      </div>
+
+      <!-- STAGE 4 -->
+      <div class="level-card">
+        <div class="level-header">
+          <div class="level-num-block lnb-4"><div class="level-num">4</div><div class="level-emoji">🏆</div></div>
+          <div class="level-meta">
+            <div class="level-source"><div class="source-dot sd-ant"></div>Anthropic Official</div>
+            <div class="level-name">Portfolio, Freelancing & Career</div>
+            <div class="level-tagline">Build projects, document them, start earning</div>
+          </div>
+          <div class="level-badge"><div class="lbadge lb-later">Final Stage</div></div>
+        </div>
+        <div class="level-body">
+          <div class="lcard-progress">
+            <div class="lcp-top"><span class="lcp-label">Stage progress</span><span class="pct-lbl">0%</span></div>
+            <div class="lcp-bg"><div class="lcp-fill" data-stage-bar="a4"></div></div>
+          </div>
+          <div class="track-list">
+            <div class="ti" data-track="a4-portfolio" onclick="toggleItem('a4-portfolio')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🗂️</span><span class="ti-label">Build 3–5 portfolio AI projects</span>
+            </div>
+            <div class="ti" data-track="a4-linkedin" onclick="toggleItem('a4-linkedin')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🔗</span><span class="ti-label">Optimize LinkedIn for AI roles</span>
+              <a href="https://www.linkedin.com/jobs/search/?keywords=prompt+engineer" target="_blank" onclick="event.stopPropagation()" class="ti-link">Jobs →</a>
+            </div>
+            <div class="ti" data-track="a4-upwork" onclick="toggleItem('a4-upwork')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">💼</span><span class="ti-label">First Upwork / Fiverr AI gig</span>
+              <a href="https://www.upwork.com/freelance-jobs/prompt-engineering/" target="_blank" onclick="event.stopPropagation()" class="ti-link">Browse →</a>
+            </div>
+            <div class="ti" data-track="a4-youtube" onclick="toggleItem('a4-youtube')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">📹</span><span class="ti-label">10 videos on @ThinkWithSanketh</span>
+            </div>
+          </div>
+          <div class="skill-row"><span class="sk">Case studies</span><span class="sk">Demo videos</span><span class="sk">Freelance</span><span class="sk">YouTube portfolio</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div style="background:var(--cream);padding:60px 24px;">
+  <div class="wrap">
+    <div class="tl-grid">
+      <div class="tl-item"><span class="tl-num">1–2</span><div class="tl-lbl">Months courses</div></div>
+      <div class="tl-item"><span class="tl-num">1–2</span><div class="tl-lbl">Months projects</div></div>
+      <div class="tl-item"><span class="tl-num">1–3</span><div class="tl-lbl">Months job prep</div></div>
+      <div class="tl-item"><span class="tl-num">~6</span><div class="tl-lbl">Months to job-ready</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- VAIBHAV SISINTY SECTION -->
+<div class="chapter-divider">
+  <div class="cd-label">Vaibhav Sisinty · Staying Ahead AI Club</div>
+  <div class="cd-title">The <em>AI Generalist</em><br>Roadmap 2026</div>
+</div>
+
+<div class="chapter" id="vaibhav">
+  <div class="wrap">
+    <div class="chapter-num">02 · AI Generalist Framework</div>
+    <h2 class="chapter-title">Cook → Chef →<br><em>Orchestrator</em></h2>
+    <p class="chapter-sub">Vaibhav Sisinty's 5-level framework. Not a developer. Not a data scientist. An AI Generalist uses AI across every domain to solve real problems.</p>
+
+    <div class="evolution-grid">
+      <div class="evo-card">
+        <div class="evo-icon">🍳</div>
+        <div class="evo-stage">Stage 1</div>
+        <div class="evo-title">Cook</div>
+        <div class="evo-desc">Copy-paste prompts. Follow recipes. Works until it doesn't — then you freeze.</div>
+        <div class="evo-time">~1 Weekend</div>
+      </div>
+      <div class="evo-card">
+        <div class="evo-icon">👨‍🍳</div>
+        <div class="evo-stage">Stage 2</div>
+        <div class="evo-title">Chef</div>
+        <div class="evo-desc">Understand the principles. When something breaks, you adapt because you know WHY.</div>
+        <div class="evo-time">~2–4 Weeks</div>
+      </div>
+      <div class="evo-card">
+        <div class="evo-icon">🎼</div>
+        <div class="evo-stage">Stage 3</div>
+        <div class="evo-title">Orchestrator</div>
+        <div class="evo-desc">Design AI systems with multiple agents. You're the head chef — AI agents are your line cooks.</div>
+        <div class="evo-time">~1–3 Months</div>
+      </div>
+    </div>
+
+    <!-- PRD METHOD -->
+    <h3 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:8px;letter-spacing:-0.3px;">The PRD Method</h3>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:20px;">The single most important prompting framework. Vague in = vague out.</p>
+    <div class="prd-grid">
+      <div class="prd-card">
+        <div class="prd-letter">P</div>
+        <div class="prd-name">Problem</div>
+        <div class="prd-desc">What exactly are you solving? Be specific. "I need to land interviews at fintech startups for a PM role"</div>
+      </div>
+      <div class="prd-card">
+        <div class="prd-letter">R</div>
+        <div class="prd-name">Role</div>
+        <div class="prd-desc">What expert should AI be? "You are a hiring manager at Razorpay who has reviewed 500+ resumes"</div>
+      </div>
+      <div class="prd-card">
+        <div class="prd-letter">D</div>
+        <div class="prd-name">Deliverable</div>
+        <div class="prd-desc">What output do you want? "Give 5 specific changes with before/after examples for each"</div>
+      </div>
+    </div>
+
+    <!-- 5 LEVELS -->
+    <h3 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:8px;letter-spacing:-0.3px;">5 Levels — Track Your Progress</h3>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">Tap any item to mark complete. All synced to cloud.</p>
+
+    <div class="levels-stack">
+
+      <!-- L1 -->
+      <div class="level-card">
+        <div class="level-header">
+          <div class="level-num-block lnb-1"><div class="level-num">L1</div><div class="level-emoji">📝</div></div>
+          <div class="level-meta">
+            <div class="level-source"><div class="source-dot sd-vs"></div>Vaibhav Sisinty</div>
+            <div class="level-name">Foundations — Master the PRD Method</div>
+            <div class="level-tagline">Prompting, local LLMs, model comparison · ~1 Weekend</div>
+          </div>
+          <div class="level-badge"><div class="lbadge lb-now">▶ Start Here</div></div>
+        </div>
+        <div class="level-body">
+          <div class="lcard-progress">
+            <div class="lcp-top"><span class="lcp-label">Level progress</span><span class="pct-lbl">0%</span></div>
+            <div class="lcp-bg"><div class="lcp-fill" data-stage-bar="v1"></div></div>
+          </div>
+          <div class="track-list">
+            <div class="ti" data-track="v1-prd" onclick="toggleItem('v1-prd')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🔧</span><span class="ti-label">Practice PRD Method on 5 real problems</span>
+            </div>
+            <div class="ti" data-track="v1-cot" onclick="toggleItem('v1-cot')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🧠</span><span class="ti-label">Learn Chain-of-Thought prompting</span>
+              <a href="https://learnprompting.org/docs/intermediate/chain_of_thought" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v1-anthropic-guide" onclick="toggleItem('v1-anthropic-guide')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">📜</span><span class="ti-label">Anthropic Prompt Engineering Guide</span>
+              <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v1-notebooklm" onclick="toggleItem('v1-notebooklm')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">📓</span><span class="ti-label">Try Google NotebookLM (Free RAG)</span>
+              <a href="https://notebooklm.google.com" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v1-deepseek" onclick="toggleItem('v1-deepseek')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🔍</span><span class="ti-label">Try DeepSeek (Free, No limits)</span>
+              <a href="https://chat.deepseek.com" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+          </div>
+          <div class="skill-row"><span class="sk">PRD method</span><span class="sk">CoT prompting</span><span class="sk">Negative constraints</span><span class="sk">Few-shot</span><span class="sk">Model selection</span></div>
+        </div>
+      </div>
+
+      <!-- L2 -->
+      <div class="level-card">
+        <div class="level-header">
+          <div class="level-num-block lnb-2"><div class="level-num">L2</div><div class="level-emoji">🔌</div></div>
+          <div class="level-meta">
+            <div class="level-source"><div class="source-dot sd-vs"></div>Vaibhav Sisinty</div>
+            <div class="level-name">Context & Connections — RAG + MCP</div>
+            <div class="level-tagline">Connect AI to your real data · ~2 Weeks</div>
+          </div>
+          <div class="level-badge"><div class="lbadge lb-next">Level 2</div></div>
+        </div>
+        <div class="level-body">
+          <div class="lcard-progress">
+            <div class="lcp-top"><span class="lcp-label">Level progress</span><span class="pct-lbl">0%</span></div>
+            <div class="lcp-bg"><div class="lcp-fill" data-stage-bar="v2"></div></div>
+          </div>
+          <div class="track-list">
+            <div class="ti" data-track="v2-mcp" onclick="toggleItem('v2-mcp')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🔌</span><span class="ti-label">Learn what MCP is (USB-C for AI)</span>
+              <a href="https://modelcontextprotocol.io" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v2-claude-mcp" onclick="toggleItem('v2-claude-mcp')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🤝</span><span class="ti-label">Connect Claude to Google Drive via MCP</span>
+              <a href="https://docs.anthropic.com/en/docs/agents-and-tools/mcp" target="_blank" onclick="event.stopPropagation()" class="ti-link">Docs →</a>
+            </div>
+            <div class="ti" data-track="v2-notebooklm-rag" onclick="toggleItem('v2-notebooklm-rag')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">📓</span><span class="ti-label">Build a NotebookLM project with your docs</span>
+              <a href="https://notebooklm.google.com" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v2-intro-mcp" onclick="toggleItem('v2-intro-mcp')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🌐</span><span class="ti-label">Intro to Model Context Protocol (Anthropic)</span>
+              <a href="https://anthropic.skilljar.com/introduction-to-model-context-protocol" target="_blank" onclick="event.stopPropagation()" class="ti-link">Course →</a>
+            </div>
+          </div>
+          <div class="skill-row"><span class="sk">RAG basics</span><span class="sk">MCP connectors</span><span class="sk">Claude + Drive</span><span class="sk">Claude + Notion</span><span class="sk">System prompts</span></div>
+        </div>
+      </div>
+
+      <!-- L3 -->
+      <div class="level-card">
+        <div class="level-header">
+          <div class="level-num-block lnb-3"><div class="level-num">L3</div><div class="level-emoji">🎨</div></div>
+          <div class="level-meta">
+            <div class="level-source"><div class="source-dot sd-vs"></div>Vaibhav Sisinty</div>
+            <div class="level-name">Multimodal Creation</div>
+            <div class="level-tagline">Images, videos, voice, one-person agency · ~2–3 Weeks</div>
+          </div>
+          <div class="level-badge"><div class="lbadge lb-later">Level 3</div></div>
+        </div>
+        <div class="level-body">
+          <div class="lcard-progress">
+            <div class="lcp-top"><span class="lcp-label">Level progress</span><span class="pct-lbl">0%</span></div>
+            <div class="lcp-bg"><div class="lcp-fill" data-stage-bar="v3"></div></div>
+          </div>
+          <div class="track-list">
+            <div class="ti" data-track="v3-midjourney" onclick="toggleItem('v3-midjourney')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🖼️</span><span class="ti-label">Create 5 AI images (Midjourney or Ideogram)</span>
+              <a href="https://ideogram.ai" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v3-kling" onclick="toggleItem('v3-kling')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🎬</span><span class="ti-label">Create a short AI video (Kling or Veo)</span>
+              <a href="https://klingai.com" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v3-elevenlabs" onclick="toggleItem('v3-elevenlabs')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🎙️</span><span class="ti-label">Clone your voice with ElevenLabs</span>
+              <a href="https://elevenlabs.io" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v3-pipeline" onclick="toggleItem('v3-pipeline')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🔄</span><span class="ti-label">Build full AI content pipeline for @ThinkWithSanketh</span>
+            </div>
+          </div>
+          <div class="skill-row"><span class="sk">AI image gen</span><span class="sk">AI video gen</span><span class="sk">Voice cloning</span><span class="sk">Content pipelines</span><span class="sk">Brand creation</span></div>
+        </div>
+      </div>
+
+      <!-- L4 -->
+      <div class="level-card">
+        <div class="level-header">
+          <div class="level-num-block lnb-4"><div class="level-num">L4</div><div class="level-emoji">🤖</div></div>
+          <div class="level-meta">
+            <div class="level-source"><div class="source-dot sd-vs"></div>Vaibhav Sisinty</div>
+            <div class="level-name">AI Agents & Automation</div>
+            <div class="level-tagline">Build agents that work while you sleep · ~3–4 Weeks</div>
+          </div>
+          <div class="level-badge"><div class="lbadge lb-later">Level 4</div></div>
+        </div>
+        <div class="level-body">
+          <div class="lcard-progress">
+            <div class="lcp-top"><span class="lcp-label">Level progress</span><span class="pct-lbl">0%</span></div>
+            <div class="lcp-bg"><div class="lcp-fill" data-stage-bar="v4"></div></div>
+          </div>
+          <div class="track-list">
+            <div class="ti" data-track="v4-zapier-first" onclick="toggleItem('v4-zapier-first')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">⚡</span><span class="ti-label">Build first automation in Zapier</span>
+              <a href="https://zapier.com" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v4-make" onclick="toggleItem('v4-make')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🔗</span><span class="ti-label">Try Make.com for visual workflow design</span>
+              <a href="https://make.com" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v4-agent-skills" onclick="toggleItem('v4-agent-skills')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🤖</span><span class="ti-label">Intro to Agent Skills (Anthropic)</span>
+              <a href="https://anthropic.skilljar.com/introduction-to-agent-skills" target="_blank" onclick="event.stopPropagation()" class="ti-link">Course →</a>
+            </div>
+            <div class="ti" data-track="v4-3automations" onclick="toggleItem('v4-3automations')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🏗️</span><span class="ti-label">Build 3 real-world automations</span>
+            </div>
+          </div>
+          <div class="skill-row"><span class="sk">n8n</span><span class="sk">Make.com</span><span class="sk">Zapier</span><span class="sk">AI agents</span><span class="sk">Workflow design</span><span class="sk">Multi-step tasks</span></div>
+        </div>
+      </div>
+
+      <!-- L5 -->
+      <div class="level-card">
+        <div class="level-header">
+          <div class="level-num-block lnb-5"><div class="level-num">L5</div><div class="level-emoji">🚀</div></div>
+          <div class="level-meta">
+            <div class="level-source"><div class="source-dot sd-vs"></div>Vaibhav Sisinty</div>
+            <div class="level-name">Vibe Coding — Build Without Code</div>
+            <div class="level-tagline">Describe in English, AI builds it · ~4–6 Weeks</div>
+          </div>
+          <div class="level-badge"><div class="lbadge lb-later">Level 5</div></div>
+        </div>
+        <div class="level-body">
+          <div class="lcard-progress">
+            <div class="lcp-top"><span class="lcp-label">Level progress</span><span class="pct-lbl">0%</span></div>
+            <div class="lcp-bg"><div class="lcp-fill" data-stage-bar="v5"></div></div>
+          </div>
+          <div class="track-list">
+            <div class="ti" data-track="v5-bolt" onclick="toggleItem('v5-bolt')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">⚡</span><span class="ti-label">Build a landing page on Bolt.new</span>
+              <a href="https://bolt.new" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v5-lovable" onclick="toggleItem('v5-lovable')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">💜</span><span class="ti-label">Try Lovable.dev for a full app</span>
+              <a href="https://lovable.dev" target="_blank" onclick="event.stopPropagation()" class="ti-link">Open →</a>
+            </div>
+            <div class="ti" data-track="v5-microsaas" onclick="toggleItem('v5-microsaas')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">💰</span><span class="ti-label">Validate a Micro-SaaS idea (Reddit research)</span>
+            </div>
+            <div class="ti" data-track="v5-ship" onclick="toggleItem('v5-ship')">
+              <div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="ti-icon">🚢</span><span class="ti-label">Ship one real product with AI</span>
+            </div>
+          </div>
+          <div class="skill-row"><span class="sk">Bolt.new</span><span class="sk">Lovable</span><span class="sk">Replit</span><span class="sk">Micro-SaaS</span><span class="sk">Vibe coding</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODEL SELECTION -->
+<div style="background:var(--cream);padding:80px 0;">
+  <div class="wrap">
+    <div class="chapter-num">03 · Model Intelligence</div>
+    <h2 class="chapter-title">Which Model<br>for <em>Which Task?</em></h2>
+    <p class="chapter-sub">The AI Generalist's superpower — knowing when to use each model. No single best model in 2026.</p>
+    <div class="model-table">
+      <div class="mt-header"><span>Model</span><span>Best For</span><span>Use Case</span></div>
+      <div class="mt-row"><div class="mt-model">Claude Opus 4.6</div><div class="mt-best">Deep reasoning</div><div><span class="mt-badge mt-claude">Writing & Analysis</span></div></div>
+      <div class="mt-row"><div class="mt-model">Claude Sonnet 4.6</div><div class="mt-best">Speed + quality</div><div><span class="mt-badge mt-claude">Everyday tasks</span></div></div>
+      <div class="mt-row"><div class="mt-model">GPT-5.3-Codex</div><div class="mt-best">Coding & agents</div><div><span class="mt-badge mt-openai">Software building</span></div></div>
+      <div class="mt-row"><div class="mt-model">Gemini 3.1 Pro</div><div class="mt-best">Multimodal</div><div><span class="mt-badge mt-gemini">Google integration</span></div></div>
+      <div class="mt-row"><div class="mt-model">Perplexity Pro</div><div class="mt-best">Research</div><div><span class="mt-badge mt-perp">Citations & search</span></div></div>
+      <div class="mt-row"><div class="mt-model">DeepSeek R1</div><div class="mt-best">Free + reasoning</div><div><span class="mt-badge mt-ds">Budget option</span></div></div>
+      <div class="mt-row"><div class="mt-model">NotebookLM</div><div class="mt-best">Your documents</div><div><span class="mt-badge mt-gemini">Free RAG tool</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ALL COURSES -->
+<div class="chapter" id="courses">
+  <div class="wrap">
+    <div class="chapter-num">04 · Official Learning</div>
+    <h2 class="chapter-title">All Anthropic<br><em>Courses</em></h2>
+    <p class="chapter-sub">Every Anthropic Skilljar course. Tap to mark complete. Faded = tech-track only.</p>
+    <div class="res-grid">
+      <div class="res-card" data-track="c-claude101" onclick="toggleItem('c-claude101')">
+        <div class="rc-top"><span class="rc-icon">🧠</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+        <div class="rc-title">Claude 101</div>
+        <div class="rc-desc">Everyday tasks with Claude. Core features. Your starting point.</div>
+        <a href="https://anthropic.skilljar.com/claude-101" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open Course →</a>
+      </div>
+      <div class="res-card" data-track="c-framework" onclick="toggleItem('c-framework')">
+        <div class="rc-top"><span class="rc-icon">🔷</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+        <div class="rc-title">AI Fluency: Framework & Foundations</div>
+        <div class="rc-desc">Core prompt engineering. Do this for Stage 2.</div>
+        <a href="https://anthropic.skilljar.com/ai-fluency-framework-foundations" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open Course →</a>
+      </div>
+      <div class="res-card" data-track="c-students" onclick="toggleItem('c-students')">
+        <div class="rc-top"><span class="rc-icon">🎓</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+        <div class="rc-title">AI Fluency for Students</div>
+        <div class="rc-desc">Learning, career, academic success with AI.</div>
+        <a href="https://anthropic.skilljar.com/ai-fluency-for-students" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open Course →</a>
+      </div>
+      <div class="res-card" data-track="c-teaching" onclick="toggleItem('c-teaching')">
+        <div class="rc-top"><span class="rc-icon">📢</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+        <div class="rc-title">Teaching AI Fluency</div>
+        <div class="rc-desc">Design AI workflows. Great for Stage 3.</div>
+        <a href="https://anthropic.skilljar.com/teaching-ai-fluency" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open Course →</a>
+      </div>
+      <div class="res-card" data-track="c-nonprofits" onclick="toggleItem('c-nonprofits')">
+        <div class="rc-top"><span class="rc-icon">💡</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+        <div class="rc-title">AI Fluency for Nonprofits</div>
+        <div class="rc-desc">Apply AI in real organizations. Productivity systems.</div>
+        <a href="https://anthropic.skilljar.com/ai-fluency-for-nonprofits" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open Course →</a>
+      </div>
+      <div class="res-card" data-track="c-educators" onclick="toggleItem('c-educators')">
+        <div class="rc-top"><span class="rc-icon">🏫</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+        <div class="rc-title">AI Fluency for Educators</div>
+        <div class="rc-desc">Useful for content creators building educational content.</div>
+        <a href="https://anthropic.skilljar.com/ai-fluency-for-educators" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open Course →</a>
+      </div>
+      <div class="res-card" data-track="c-agents" onclick="toggleItem('c-agents')">
+        <div class="rc-top"><span class="rc-icon">🤖</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+        <div class="rc-title">Intro to Agent Skills</div>
+        <div class="rc-desc">Reusable AI skills. No deep coding needed.</div>
+        <a href="https://anthropic.skilljar.com/introduction-to-agent-skills" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open Course →</a>
+      </div>
+      <div class="res-card" style="opacity:0.35;" onclick="">
+        <div class="rc-top"><span class="rc-icon">⌨️</span></div>
+        <div class="rc-title">Claude Code in Action</div>
+        <div class="rc-desc">Requires coding — tech track only. Skip for now.</div>
+        <a href="https://anthropic.skilljar.com/claude-code-in-action" target="_blank" onclick="event.stopPropagation()" class="rc-link" style="color:var(--muted)">Tech Track</a>
+      </div>
+      <div class="res-card" style="opacity:0.35;" onclick="">
+        <div class="rc-top"><span class="rc-icon">🌐</span></div>
+        <div class="rc-title">Model Context Protocol</div>
+        <div class="rc-desc">Python required. Advanced tech track.</div>
+        <a href="https://anthropic.skilljar.com/introduction-to-model-context-protocol" target="_blank" onclick="event.stopPropagation()" class="rc-link" style="color:var(--muted)">Tech Track</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VIDEOS -->
+<div class="chapter" id="videos" style="background:var(--cream);">
+  <div class="wrap">
+    <div class="chapter-num">05 · Watch & Learn</div>
+    <h2 class="chapter-title">Video <em>Resources</em></h2>
+    <p class="chapter-sub">Tap play to open in YouTube app directly. Tap card to mark watched.</p>
+    <div class="vid-grid">
+      <div class="vid-card" data-track="vid-anthropic" onclick="toggleItem('vid-anthropic')">
+        <div class="vthumb"><div class="vbg" style="background:linear-gradient(135deg,#0a0a0f,#1a0a2e);"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:1;">
+            <a href="https://www.youtube.com/@AnthropicAI" target="_blank" onclick="event.stopPropagation()" class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></a>
+            <div class="watched-pill">✓ Watched</div>
+          </div>
+        </div>
+        <div class="vinfo"><div class="vtag">Official</div><div class="vtitle">Anthropic Official YouTube</div><div class="vchan">@AnthropicAI</div><div class="vmark">Tap to mark watched</div></div>
+      </div>
+      <div class="vid-card" data-track="vid-vaibhav" onclick="toggleItem('vid-vaibhav')">
+        <div class="vthumb"><div class="vbg" style="background:linear-gradient(135deg,#7c2d12,#ea580c);"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:1;">
+            <a href="https://link.outskill.com/vaibhavsisinty-yt" target="_blank" onclick="event.stopPropagation()" class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></a>
+            <div class="watched-pill">✓ Watched</div>
+          </div>
+        </div>
+        <div class="vinfo"><div class="vtag">AI Generalist</div><div class="vtitle">Vaibhav Sisinty — Full Channel</div><div class="vchan">Staying Ahead AI Club</div><div class="vmark">Tap to mark watched</div></div>
+      </div>
+      <div class="vid-card" data-track="vid-notebooklm" onclick="toggleItem('vid-notebooklm')">
+        <div class="vthumb"><div class="vbg" style="background:linear-gradient(135deg,#0d4a42,#10b981);"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:1;">
+            <a href="https://www.youtube.com/results?search_query=vaibhav+sisinty+notebooklm" target="_blank" onclick="event.stopPropagation()" class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></a>
+            <div class="watched-pill">✓ Watched</div>
+          </div>
+        </div>
+        <div class="vinfo"><div class="vtag">Level 1 · 260K views</div><div class="vtitle">Google's FREE Tool Destroyed 10 AI Subscriptions</div><div class="vchan">Vaibhav Sisinty</div><div class="vmark">Tap to mark watched</div></div>
+      </div>
+      <div class="vid-card" data-track="vid-aibot" onclick="toggleItem('vid-aibot')">
+        <div class="vthumb"><div class="vbg" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:1;">
+            <a href="https://www.youtube.com/results?search_query=vaibhav+sisinty+viral+ai+bot" target="_blank" onclick="event.stopPropagation()" class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></a>
+            <div class="watched-pill">✓ Watched</div>
+          </div>
+        </div>
+        <div class="vinfo"><div class="vtag">Level 4 · 180K views</div><div class="vtitle">This Viral AI Bot Can Do Your Work For FREE</div><div class="vchan">Vaibhav Sisinty</div><div class="vmark">Tap to mark watched</div></div>
+      </div>
+      <div class="vid-card" data-track="vid-vibecoding" onclick="toggleItem('vid-vibecoding')">
+        <div class="vthumb"><div class="vbg" style="background:linear-gradient(135deg,#4a1d6b,#9333ea);"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:1;">
+            <a href="https://www.youtube.com/results?search_query=vaibhav+sisinty+vibe+coding" target="_blank" onclick="event.stopPropagation()" class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></a>
+            <div class="watched-pill">✓ Watched</div>
+          </div>
+        </div>
+        <div class="vinfo"><div class="vtag">Level 5 · 65K views</div><div class="vtitle">Vibe Coding Changed Everything</div><div class="vchan">Vaibhav Sisinty</div><div class="vmark">Tap to mark watched</div></div>
+      </div>
+      <div class="vid-card" data-track="vid-faceless" onclick="toggleItem('vid-faceless')">
+        <div class="vthumb"><div class="vbg" style="background:linear-gradient(135deg,#7c1d1d,#e05c3a);"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:1;">
+            <a href="https://www.youtube.com/results?search_query=AI+faceless+YouTube+channel+strategy+2024" target="_blank" onclick="event.stopPropagation()" class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></a>
+            <div class="watched-pill">✓ Watched</div>
+          </div>
+        </div>
+        <div class="vinfo"><div class="vtag">Creator</div><div class="vtitle">AI Faceless YouTube Strategy</div><div class="vchan">For @ThinkWithSanketh</div><div class="vmark">Tap to mark watched</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLS -->
+<div class="chapter" id="tools">
+  <div class="wrap">
+    <div class="chapter-num">06 · Arsenal</div>
+    <h2 class="chapter-title">Complete <em>Tool Stack</em></h2>
+    <p class="chapter-sub">Every tool from Vaibhav's 5 levels + Anthropic. Tap to mark as explored.</p>
+    <div class="res-grid">
+      <div class="res-card" data-track="t-claude" onclick="toggleItem('t-claude')"><div class="rc-top"><span class="rc-icon">✨</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">Claude.ai</div><div class="rc-desc">Daily practice tool. Every prompt technique goes here first.</div><a href="https://claude.ai" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open →</a></div>
+      <div class="res-card" data-track="t-notebooklm" onclick="toggleItem('t-notebooklm')"><div class="rc-top"><span class="rc-icon">📓</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">Google NotebookLM</div><div class="rc-desc">Free RAG tool. Upload your docs, ask questions. No coding.</div><a href="https://notebooklm.google.com" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open →</a></div>
+      <div class="res-card" data-track="t-perplexity" onclick="toggleItem('t-perplexity')"><div class="rc-top"><span class="rc-icon">🔍</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">Perplexity AI</div><div class="rc-desc">Research with citations. Best for factual research tasks.</div><a href="https://perplexity.ai" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open →</a></div>
+      <div class="res-card" data-track="t-zapier" onclick="toggleItem('t-zapier')"><div class="rc-top"><span class="rc-icon">⚡</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">Zapier</div><div class="rc-desc">Connect AI to 7000+ apps. No code. Free tier available.</div><a href="https://zapier.com" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open →</a></div>
+      <div class="res-card" data-track="t-make" onclick="toggleItem('t-make')"><div class="rc-top"><span class="rc-icon">🔗</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">Make.com</div><div class="rc-desc">Visual workflow builder. More powerful than Zapier for complex flows.</div><a href="https://make.com" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open →</a></div>
+      <div class="res-card" data-track="t-elevenlabs" onclick="toggleItem('t-elevenlabs')"><div class="rc-top"><span class="rc-icon">🎙️</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">ElevenLabs</div><div class="rc-desc">Voice cloning. Clone your voice for @ThinkWithSanketh content.</div><a href="https://elevenlabs.io" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open →</a></div>
+      <div class="res-card" data-track="t-kling" onclick="toggleItem('t-kling')"><div class="rc-top"><span class="rc-icon">🎬</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">Kling AI</div><div class="rc-desc">4K AI video generation. For faceless YouTube content creation.</div><a href="https://klingai.com" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open →</a></div>
+      <div class="res-card" data-track="t-bolt" onclick="toggleItem('t-bolt')"><div class="rc-top"><span class="rc-icon">⚡</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">Bolt.new</div><div class="rc-desc">Build full-stack apps from a text prompt. Free tier. Instant deploy.</div><a href="https://bolt.new" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open →</a></div>
+      <div class="res-card" data-track="t-ideogram" onclick="toggleItem('t-ideogram')"><div class="rc-top"><span class="rc-icon">🖼️</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">Ideogram AI</div><div class="rc-desc">Free AI image generation. Great for thumbnails and social graphics.</div><a href="https://ideogram.ai" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open →</a></div>
+      <div class="res-card" data-track="t-deepseek" onclick="toggleItem('t-deepseek')"><div class="rc-top"><span class="rc-icon">🔬</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">DeepSeek</div><div class="rc-desc">Best free AI model. Unlimited, powerful reasoning. No subscription needed.</div><a href="https://chat.deepseek.com" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open →</a></div>
+      <div class="res-card" data-track="t-learnprompting" onclick="toggleItem('t-learnprompting')"><div class="rc-top"><span class="rc-icon">📖</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">Learn Prompting</div><div class="rc-desc">Most comprehensive free prompt engineering guide. Non-technical friendly.</div><a href="https://learnprompting.org/docs/introduction" target="_blank" onclick="event.stopPropagation()" class="rc-link">Read →</a></div>
+      <div class="res-card" data-track="t-lovable" onclick="toggleItem('t-lovable')"><div class="rc-top"><span class="rc-icon">💜</span><div class="rc-check"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="rc-title">Lovable.dev</div><div class="rc-desc">Beautiful apps from description. Design-forward vibe coding tool.</div><a href="https://lovable.dev" target="_blank" onclick="event.stopPropagation()" class="rc-link">Open →</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- SALARY -->
+<div class="chapter" id="salary" style="background:var(--cream);">
+  <div class="wrap">
+    <div class="chapter-num">07 · Career Outcomes</div>
+    <h2 class="chapter-title">What You<br>Can <em>Earn</em></h2>
+    <p class="chapter-sub">Non-tech AI career salaries in India + global freelancing. Real numbers from the 2026 market.</p>
+    <div class="sal-grid">
+      <div class="sal-card"><div class="sal-role">Prompt Engineer</div><div class="sal-num">₹5–10 LPA</div><div class="sal-note">Entry level</div></div>
+      <div class="sal-card"><div class="sal-role">AI Automation Specialist</div><div class="sal-num">₹6–12 LPA</div><div class="sal-note">Workflow skills</div></div>
+      <div class="sal-card"><div class="sal-role">AI Operations Specialist</div><div class="sal-num">₹7–15 LPA</div><div class="sal-note">Manage AI in orgs</div></div>
+      <div class="sal-card"><div class="sal-role">AI Product Specialist</div><div class="sal-num">₹8–18 LPA</div><div class="sal-note">Integrate AI in products</div></div>
+      <div class="sal-card"><div class="sal-role">Freelance (Level 1–2)</div><div class="sal-num">$500–2K</div><div class="sal-note">Per audit/project</div></div>
+      <div class="sal-card"><div class="sal-role">Freelance (Level 3–4)</div><div class="sal-num">$2K–10K</div><div class="sal-note">Per automation system</div></div>
+      <div class="sal-card"><div class="sal-role">Vibe Coding (Level 5)</div><div class="sal-num">$2K–15K</div><div class="sal-note">Per product built</div></div>
+      <div class="sal-card"><div class="sal-role">Full AI Generalist</div><div class="sal-num">$5K–15K</div><div class="sal-note">Per month retainer</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Built for <strong>@ThinkWithSanketh</strong> · Inspired by <strong>Vaibhav Sisinty</strong> · Powered by <strong>Anthropic</strong> · Progress synced to Google Cloud ☁️
+</footer>
+
+</div><!-- end main-wrap -->
+<div id="toast"></div>
+
+<script>
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), +(e.target.dataset.delay||0));
+    }
+  });
+}, {threshold: 0.08});
+
+document.querySelectorAll('.level-card:not(.visible)').forEach((el,i) => {
+  el.dataset.delay = i * 80;
+  io.observe(el);
+});
+document.querySelectorAll('.res-card, .vid-card').forEach((el,i) => {
+  el.dataset.delay = (i%3) * 60;
+  io.observe(el);
+});
+</script>
+</body>
+</html>
